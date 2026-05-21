@@ -90,6 +90,70 @@ export type SongStatsItem = {
   data: number;
 };
 
+export type RankChange =
+  | {
+      type: "new";
+      value: null;
+    }
+  | {
+      type: "up" | "down" | "same";
+      value: number;
+    };
+
+export type NormalizedSongStats = Record<StatsPlatform, number> & {
+  totalPlayCount: number;
+  totalCommentCount: number;
+  engagement: number;
+};
+
+export type ChartRankPoint = {
+  chartType: ChartType;
+  rank: number | null;
+};
+
+export type DailyChartTableRow = {
+  songId: number;
+  rank: number;
+  rankChange: RankChange;
+  songName: string;
+  artistNames: string;
+  albumName: string;
+  albumImageUrl: string;
+  albumType: AlbumInfo["album_type"];
+  issueDate: string;
+  hasMv: boolean;
+  chartRanks: Record<ChartType, number | null>;
+  dumbbellPoints: ChartRankPoint[];
+  totalPlayCount: number;
+  totalCommentCount: number;
+  engagement: number;
+  playCountDelta: number;
+  playCountChangeRate: number;
+  genieRank: number | null;
+  melonRank: number | null;
+};
+
+export const STATS_PLATFORMS = [
+  "melon_playcnt",
+  "genie_playcnt",
+  "ytmusic_playcnt",
+  "spotify_playcnt",
+  "melon_cmt",
+  "ytmusic_cmt",
+] as const satisfies readonly StatsPlatform[];
+
+export const PLAY_COUNT_PLATFORMS = [
+  "melon_playcnt",
+  "genie_playcnt",
+  "ytmusic_playcnt",
+  "spotify_playcnt",
+] as const satisfies readonly StatsPlatform[];
+
+export const COMMENT_PLATFORMS = [
+  "melon_cmt",
+  "ytmusic_cmt",
+] as const satisfies readonly StatsPlatform[];
+
 export const CHART_TYPE_META = CHART_TYPES.reduce(
   (acc, chart) => {
     acc[chart.value] = chart;
