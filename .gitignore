@@ -1,0 +1,34 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next
+/out
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# local assignment notes / confidential source docs
+ASSIGNMENT_*.md
+PROJECT_10_DAY_PLAN.md
+PROJECT_STRUCTURE.md
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.next-dev*.log
+
+# env
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
