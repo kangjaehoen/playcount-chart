@@ -1,134 +1,172 @@
 "use client";
 
-import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import LibraryMusicOutlinedIcon from "@mui/icons-material/LibraryMusicOutlined";
-import ShowChartOutlinedIcon from "@mui/icons-material/ShowChartOutlined";
+import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import LibraryMusicRoundedIcon from "@mui/icons-material/LibraryMusicRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
-import Drawer from "@mui/material/Drawer";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
-import type { ElementType, ReactNode } from "react";
-
-const drawerWidth = 260;
-
-const chartNavItems = [
-  { label: "일간", href: "/charts/daily", icon: <ShowChartOutlinedIcon /> },
-  { label: "주간", href: "/charts/weekly", icon: <CalendarMonthOutlinedIcon /> },
-  { label: "월간", href: "/charts/monthly", icon: <AssessmentOutlinedIcon /> },
-  { label: "분기별", href: "/charts/quarterly", icon: <AssessmentOutlinedIcon /> },
-];
+import type { ReactNode } from "react";
 
 type AppShellProps = {
   children: ReactNode;
 };
 
+const sidebarWidth = 168;
+
+const chartNavItems = [
+  { label: "일간", href: "/charts/daily" },
+  { label: "주간", href: "/charts/weekly" },
+  { label: "월간", href: "/charts/monthly" },
+  { label: "분기별", href: "/charts/quarterly" },
+];
+
+function SoundatBrandMark() {
+  return (
+    <Box
+      component="img"
+      src="/logos/soundat.svg"
+      alt=""
+      aria-hidden
+      sx={{ width: 26, height: 26, display: "block" }}
+    />
+  );
+}
+
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", minWidth: 1280 }}>
-      <Drawer
-        variant="permanent"
+    <Box sx={{ display: "flex", minHeight: "100vh", minWidth: 1280, bgcolor: "#ffffff" }}>
+      <Box
+        component="aside"
         sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          "& .MuiDrawer-paper": {
-            width: drawerWidth,
-            borderRight: "1px solid",
-            borderColor: "divider",
-            bgcolor: "#ffffff",
-          },
+          width: sidebarWidth,
+          flex: `0 0 ${sidebarWidth}px`,
+          borderRight: "1px solid #edf1f6",
+          bgcolor: "#ffffff",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          px: 2,
+          py: 2.25,
         }}
       >
-        <Stack spacing={3} sx={{ px: 3, py: 3 }}>
-          <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
-            <Box
-              aria-hidden
-              sx={{
-                width: 34,
-                height: 34,
-                borderRadius: 1.5,
-                bgcolor: "primary.main",
-                color: "primary.contrastText",
-                display: "grid",
-                placeItems: "center",
-              }}
-            >
-              <LibraryMusicOutlinedIcon fontSize="small" />
-            </Box>
-            <Box>
-              <Typography variant="h2" sx={{ fontSize: 20 }}>
-                Playcount
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Soundat chart console
-              </Typography>
-            </Box>
+        <Box>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 3.25 }}>
+            <SoundatBrandMark />
+            <Typography sx={{ color: "#0b1020", fontSize: 12 }}>PLAYCOUNT</Typography>
           </Stack>
 
-          <Divider />
+          <Stack spacing={0.45}>
+            {[
+              { label: "홈", icon: <HomeRoundedIcon sx={{ fontSize: 16 }} /> },
+              { label: "아티스트", icon: <LibraryMusicRoundedIcon sx={{ fontSize: 16 }} /> },
+              { label: "차트", icon: <BarChartRoundedIcon sx={{ fontSize: 16 }} />, active: true },
+              { label: "캘린더", icon: <CalendarMonthRoundedIcon sx={{ fontSize: 16 }} /> },
+            ].map((item) => (
+              <Box
+                key={item.label}
+                sx={{
+                  height: 30,
+                  px: 1,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.9,
+                  color: item.active ? "#0b1020" : "#8c97a8",
+                  bgcolor: item.active ? "#f3f6fa" : "transparent",
+                  fontSize: 11,
+                }}
+              >
+                {item.icon}
+                {item.label}
+              </Box>
+            ))}
+          </Stack>
 
-          <Box>
-            <Stack direction="row" spacing={1} sx={{ mb: 1.5, alignItems: "center" }}>
-              <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 800 }}>
-                곡 차트
-              </Typography>
-              <Chip label="Daily" size="small" color="primary" variant="outlined" />
-            </Stack>
-            <List disablePadding>
+          <Box sx={{ mt: 2.1, pl: 3.4 }}>
+            <Typography sx={{ mb: 0.6, color: "#9aa7b7", fontSize: 10 }}>곡 차트</Typography>
+            <Stack spacing={0.25}>
               {chartNavItems.map((item) => {
                 const selected = pathname === item.href;
 
                 return (
-                  <ListItemButton
+                  <Box
                     key={item.href}
-                    component={NextLink as ElementType}
+                    component={NextLink}
                     href={item.href}
-                    selected={selected}
                     sx={{
-                      minHeight: 44,
+                      height: 26,
+                      px: 1,
                       borderRadius: 1,
-                      mb: 0.5,
-                      "&.Mui-selected": {
-                        bgcolor: "rgba(31, 111, 235, 0.1)",
-                        color: "primary.main",
-                      },
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      color: selected ? "#1f6feb" : "#6f7b8c",
+                      bgcolor: selected ? "#edf4ff" : "transparent",
+                      fontSize: 10,
                     }}
                   >
-                    <ListItemIcon
-                      sx={{
-                        minWidth: 36,
-                        color: selected ? "primary.main" : "text.secondary",
-                      }}
-                    >
-                      {item.icon}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.label}
-                      slotProps={{
-                        primary: {
-                          sx: { fontWeight: selected ? 800 : 600 },
-                        },
-                      }}
-                    />
-                  </ListItemButton>
+                    {item.label}
+                    {selected ? <ChevronRightRoundedIcon sx={{ fontSize: 14 }} /> : null}
+                  </Box>
                 );
               })}
-            </List>
+            </Stack>
           </Box>
-        </Stack>
-      </Drawer>
+        </Box>
 
-      <Box component="main" sx={{ flex: 1, px: 4, py: 3 }}>
+        <Stack spacing={1.5}>
+          <Box
+            sx={{
+              height: 30,
+              px: 1,
+              borderRadius: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: 0.9,
+              color: "#8c97a8",
+              fontSize: 11,
+            }}
+          >
+            <SettingsRoundedIcon sx={{ fontSize: 16 }} />
+            설정
+          </Box>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", px: 0.6 }}>
+            <Box
+              aria-hidden
+              sx={{
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                bgcolor: "#eef2f7",
+                display: "grid",
+                placeItems: "center",
+                color: "#687386",
+                fontSize: 10,
+              }}
+            >
+              K
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography noWrap sx={{ color: "#2b3445", fontSize: 10 }}>
+                kjh
+              </Typography>
+              <Typography noWrap sx={{ color: "#9aa7b7", fontSize: 9 }}>
+                assignment
+              </Typography>
+            </Box>
+          </Stack>
+        </Stack>
+      </Box>
+
+      <Box component="main" sx={{ flex: 1, minWidth: 0, bgcolor: "#ffffff" }}>
         {children}
       </Box>
     </Box>

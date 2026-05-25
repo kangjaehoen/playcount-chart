@@ -33,16 +33,13 @@ export const theme = createTheme({
     borderRadius: 8,
   },
   typography: {
-    fontFamily:
-      "Pretendard, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+    fontFamily: "Pretendard, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
     h1: {
       fontSize: 28,
-      fontWeight: 700,
       letterSpacing: 0,
     },
     h2: {
       fontSize: 22,
-      fontWeight: 700,
       letterSpacing: 0,
     },
     body1: {
@@ -54,7 +51,6 @@ export const theme = createTheme({
     button: {
       letterSpacing: 0,
       textTransform: "none",
-      fontWeight: 700,
     },
   },
   components: {
@@ -76,7 +72,6 @@ export const theme = createTheme({
       styleOverrides: {
         head: {
           color: "#6a7280",
-          fontWeight: 700,
         },
       },
     },

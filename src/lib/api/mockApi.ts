@@ -25,11 +25,15 @@ const platformMultipliers: Record<Exclude<SongStatsRequestPlatform, "all">, numb
   genie_playcnt: 0.22,
   ytmusic_playcnt: 0.67,
   spotify_playcnt: 0.82,
-  melon_cmt: 0.0048,
-  ytmusic_cmt: 0.0029,
+  melon_cmt: 0.108,
+  ytmusic_cmt: 0.066,
 };
 
 const songTitles = [
+  "서울탈출",
+  "너에게 닿기를",
+  "우리가 쓴 밤",
+  "봄이 오면",
   "Midnight Signal",
   "처음의 온도",
   "Blue Archive",
@@ -49,6 +53,10 @@ const songTitles = [
 ];
 
 const artistNames = [
+  "윤하, JUNNY",
+  "IVE",
+  "aespa",
+  "DAY6",
   "Luna Wave",
   "NOVA",
   "Kite",
@@ -137,15 +145,17 @@ function getPlatformData({
 }
 
 function getAlbumImageUrl(albumId: number) {
-  const hue = albumId % 360;
-  const accentHue = (hue + 48) % 360;
   const label = String(albumId).slice(-2);
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-      <rect width="96" height="96" rx="12" fill="hsl(${hue} 68% 50%)"/>
-      <circle cx="72" cy="24" r="28" fill="hsl(${accentHue} 72% 58%)" opacity="0.75"/>
-      <path d="M16 68 C30 48, 45 78, 80 42" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" opacity="0.7"/>
-      <text x="18" y="32" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="white">${label}</text>
+      <rect width="96" height="96" fill="#fff7ed"/>
+      <rect x="10" y="9" width="76" height="78" rx="5" fill="#ff7a30"/>
+      <rect x="17" y="16" width="62" height="16" rx="2" fill="#fff3e7"/>
+      <rect x="17" y="38" width="29" height="29" rx="3" fill="#16c79a"/>
+      <rect x="50" y="38" width="29" height="29" rx="3" fill="#ffd166"/>
+      <path d="M20 76h56" stroke="#fff3e7" stroke-width="5" stroke-linecap="round"/>
+      <text x="23" y="29" font-family="Arial, sans-serif" font-size="10" fill="#ff7a30">NEW SOUND</text>
+      <text x="27" y="59" font-family="Arial, sans-serif" font-size="16" fill="white">${label}</text>
     </svg>
   `;
 
