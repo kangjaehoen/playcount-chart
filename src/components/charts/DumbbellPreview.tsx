@@ -7,10 +7,15 @@ type DumbbellPreviewProps = {
   chartTypes?: ChartType[];
 };
 
-const width = 220;
-const height = 34;
-const paddingX = 18;
-const centerY = 17;
+const width = 280;
+const height = 88;
+const paddingX = 34;
+const centerY = 44;
+const leftBandX = 12;
+const leftBandWidth = 51;
+const plotStartX = leftBandX + leftBandWidth;
+const rightBandX = width - leftBandX;
+const guideLineXs = [0.5, leftBandX, plotStartX, 117, 171, 225, rightBandX, width - 0.5];
 
 export function DumbbellPreview({ points, chartTypes = [] }: DumbbellPreviewProps) {
   const rankPoints =
@@ -42,13 +47,21 @@ export function DumbbellPreview({ points, chartTypes = [] }: DumbbellPreviewProp
       viewBox={`0 0 ${width} ${height}`}
       sx={{ display: "block", width, height }}
     >
-      {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
-        const x = paddingX + ratio * (width - paddingX * 2);
-
-        return (
-          <line key={ratio} x1={x} y1="0" x2={x} y2={height} stroke="#eef2f7" strokeWidth="1" />
-        );
-      })}
+      <rect x="0" y="0" width={width} height={height} fill="#ffffff" />
+      <rect x={leftBandX} y="0" width={leftBandWidth} height={height} fill="#f8fafc" />
+      {guideLineXs.map((x) => (
+        <line
+          key={x}
+          x1={x}
+          y1="0"
+          x2={x}
+          y2={height}
+          stroke="#e2e8f0"
+          strokeWidth="1"
+          strokeDasharray="2 2"
+          shapeRendering="crispEdges"
+        />
+      ))}
       {visiblePoints.length > 1 ? (
         <line
           x1={minX}

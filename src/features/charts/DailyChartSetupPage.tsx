@@ -1,12 +1,10 @@
 "use client";
 
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import FilterListRoundedIcon from "@mui/icons-material/FilterListRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import KeyboardArrowLeftRoundedIcon from "@mui/icons-material/KeyboardArrowLeftRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
-import VideoLibraryRoundedIcon from "@mui/icons-material/VideoLibraryRounded";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
@@ -44,6 +42,25 @@ const dateOptions = ["2026-03-01", "2026-02-28", "2026-02-27", "2026-02-26"];
 const pageButtons = [1, 2, 3, 4];
 const skeletonRows = Array.from({ length: 10 }, (_, index) => index);
 const loadingDelayMs = 240;
+const chartTableWidth = 1080;
+const chartTableRowHeight = 88;
+const chartTableColumns = {
+  rank: 60,
+  rankChange: 40,
+  songInfo: 288,
+  soundat: 280,
+  engagement: 116,
+  playCount: 116,
+  genie: 90,
+  melon: 90,
+} as const;
+const chartHeaderTypography = {
+  fontFamily: "Pretendard, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+  fontSize: 12,
+  fontWeight: 600,
+  lineHeight: "17px",
+  letterSpacing: 0,
+} as const;
 
 const numberFormatter = new Intl.NumberFormat("ko-KR");
 
@@ -55,8 +72,8 @@ const chartChipLabels: Record<ChartType, string> = {
   spotify: "스포티파이 차트",
 };
 
-const CHECKBOX_ACTIVE_COLOR = "#5b4af4";
-const CHECKBOX_INACTIVE_COLOR = "#dfe7f0";
+const CHECKBOX_ACTIVE_COLOR = "#4f46e5";
+const CHECKBOX_INACTIVE_COLOR = "#e2e8f0";
 const chartLogoSrc: Record<ChartType, string> = {
   soundat: "/logos/soundat.svg",
   ytmusic: "/logos/youtube.svg",
@@ -98,22 +115,110 @@ function ChartLogo({
   );
 }
 
+function SvgIconImage({ src, size = 12 }: { src: string; size?: number }) {
+  return (
+    <Box
+      component="img"
+      src={src}
+      alt=""
+      aria-hidden
+      sx={{
+        width: size,
+        height: size,
+        display: "block",
+        flex: `0 0 ${size}px`,
+      }}
+    />
+  );
+}
+
+function ChartHeaderText({ children }: { children: ReactNode }) {
+  return (
+    <Box
+      component="span"
+      sx={{
+        ...chartHeaderTypography,
+        color: "#334155",
+        display: "inline-flex",
+        alignItems: "center",
+        height: 17,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function ChartHeaderFrame({
+  children,
+  gap = 0,
+  justifyContent = "flex-start",
+}: {
+  children: ReactNode;
+  gap?: number | string;
+  justifyContent?: "center" | "flex-start" | "flex-end";
+}) {
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        height: 18,
+        display: "flex",
+        alignItems: "center",
+        justifyContent,
+        gap,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function DateDropdownCaret() {
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        width: 20,
+        height: 18,
+        borderRadius: "1px",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flex: "0 0 20px",
+        transform: "rotate(180deg)",
+      }}
+    >
+      <Box
+        sx={{
+          width: 0,
+          height: 0,
+          borderLeft: "6px solid transparent",
+          borderRight: "6px solid transparent",
+          borderBottom: "10px solid #020617",
+        }}
+      />
+    </Box>
+  );
+}
+
 function ChartCheckboxIcon({ checked = false }: { checked?: boolean }) {
   return (
     <Box
       sx={{
-        width: 20,
-        height: 20,
-        borderRadius: 0.5,
+        width: 16,
+        height: 16,
+        borderRadius: "2px",
         border: checked ? "none" : "1px solid #cbd5e1",
         bgcolor: checked ? CHECKBOX_ACTIVE_COLOR : CHECKBOX_INACTIVE_COLOR,
         color: "#ffffff",
         display: "grid",
         placeItems: "center",
-        boxShadow: checked ? "0 1px 2px rgba(91, 74, 244, 0.18)" : "none",
+        boxShadow: "none",
       }}
     >
-      {checked ? <CheckRoundedIcon sx={{ fontSize: 16, strokeWidth: 2 }} /> : null}
+      {checked ? <CheckRoundedIcon sx={{ fontSize: 14, strokeWidth: 2 }} /> : null}
     </Box>
   );
 }
@@ -176,14 +281,26 @@ function getRankChangeView(rankChange: RankChange) {
 
 function getTrendColor(value: number) {
   if (value < 0) {
-    return "#ff315c";
+    return "#1976f3";
   }
 
   if (value > 0) {
-    return "#00a76f";
+    return "#ff315c";
   }
 
-  return "#a7b0bf";
+  return "#64748b";
+}
+
+function getTrendBackground(value: number) {
+  if (value < 0) {
+    return "#edf5ff";
+  }
+
+  if (value > 0) {
+    return "#fff1f4";
+  }
+
+  return "#eef2f7";
 }
 
 function getSelectedChartSummary(selectedCharts: ChartType[]) {
@@ -193,7 +310,7 @@ function getSelectedChartSummary(selectedCharts: ChartType[]) {
   }
 
   const firstLabel =
-    firstChart === "soundat" ? "사운드엣차트" : CHART_TYPE_META[firstChart].shortLabel;
+    firstChart === "soundat" ? "사운드엣 차트" : CHART_TYPE_META[firstChart].shortLabel;
 
   if (selectedCharts.length <= 1) {
     return firstLabel;
@@ -251,50 +368,6 @@ function ChartFilterPill({ chartType, selected, disabled, onClick }: ChartFilter
   );
 }
 
-function InfoDot({ dark = false }: { dark?: boolean }) {
-  return (
-    <Box
-      aria-hidden
-      sx={{
-        width: 14,
-        height: 14,
-        borderRadius: "50%",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        bgcolor: dark ? "#0b1020" : "#e8edf4",
-        color: dark ? "#ffffff" : "#738095",
-        fontSize: 10,
-        ml: 0.5,
-      }}
-    >
-      i
-    </Box>
-  );
-}
-
-function PlatformHeader({ label, color }: { label: string; color: string }) {
-  return (
-    <Box sx={{ display: "flex", justifyContent: "center" }}>
-      <Box
-        aria-label={label}
-        sx={{
-          width: 14,
-          height: 14,
-          borderRadius: "50%",
-          bgcolor: color,
-          color: "#ffffff",
-          display: "grid",
-          placeItems: "center",
-          fontSize: 10,
-        }}
-      >
-        {label}
-      </Box>
-    </Box>
-  );
-}
-
 function SmallIconButton({
   label,
   onClick,
@@ -310,15 +383,16 @@ function SmallIconButton({
       onClick={onClick}
       size="small"
       sx={{
-        width: 28,
-        height: 28,
-        border: "1px solid #dce4ef",
-        borderRadius: 1,
-        color: "#718096",
-        bgcolor: "#ffffff",
+        width: 36,
+        height: 36,
+        p: "12px",
+        border: "none",
+        borderRadius: "2px",
+        color: "#334155",
+        bgcolor: "#f1f5f9",
+        gap: "10px",
         "&:hover": {
-          bgcolor: "#f7f9fc",
-          borderColor: "#cfd8e3",
+          bgcolor: "#e2e8f0",
         },
       }}
     >
@@ -409,7 +483,7 @@ export function DailyChartSetupPage() {
   };
 
   return (
-    <Box sx={{ width: 1080, mx: "auto", pt: 3.25, pb: 7 }}>
+    <Box sx={{ width: chartTableWidth, mx: "auto", pt: 3.25, pb: 7 }}>
       <Box
         sx={{
           borderBottom: "1px solid #edf1f6",
@@ -417,77 +491,170 @@ export function DailyChartSetupPage() {
           mb: 3.8,
         }}
       >
-        <Typography
-          sx={{
-            color: "#9aa7b7",
-            fontSize: 10,
-          }}
-        >
-          <Box component="span" sx={{ color: "#7ba5d7" }}>
+        <Stack direction="row" sx={{ alignItems: "center", gap: 0.25 }}>
+          <Typography
+            component="span"
+            sx={{
+              color: "#94A3B8",
+              fontSize: 12,
+              fontWeight: 500,
+              lineHeight: 1,
+              letterSpacing: "-0.03em",
+            }}
+          >
             Chart
-          </Box>{" "}
-          &gt; 곡 차트 &gt; 일간
-        </Typography>
+          </Typography>
+          <KeyboardArrowRightRoundedIcon
+            sx={{
+              width: 14,
+              height: 14,
+              color: "#94A3B8",
+              fontSize: 14,
+              flex: "0 0 14px",
+            }}
+          />
+          <Typography
+            component="span"
+            sx={{
+              color: "#94A3B8",
+              fontSize: 12,
+              fontWeight: 500,
+              lineHeight: 1,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            곡 차트
+          </Typography>
+          <KeyboardArrowRightRoundedIcon
+            sx={{
+              width: 14,
+              height: 14,
+              color: "#94A3B8",
+              fontSize: 14,
+              flex: "0 0 14px",
+            }}
+          />
+          <Typography
+            component="span"
+            sx={{
+              color: "#334155",
+              fontSize: 12,
+              fontWeight: 500,
+              lineHeight: 1,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            일간
+          </Typography>
+        </Stack>
       </Box>
 
       <Stack direction="row" sx={{ alignItems: "center", mb: 7.1 }}>
-        <Typography sx={{ color: "#182033", fontSize: 24, mr: 1.5 }}>곡 발매일</Typography>
+        <Typography
+          sx={{
+            color: "#334155",
+            fontSize: 32,
+            fontWeight: 600,
+            lineHeight: 1,
+            letterSpacing: "-0.03em",
+            mr: 1.5,
+          }}
+        >
+          곡 발매일
+        </Typography>
+        <Box
+          aria-hidden
+          sx={{
+            width: 2,
+            height: 28,
+            bgcolor: "#E2E8F0",
+            flex: "0 0 2px",
+            mr: 1.5,
+          }}
+        />
         <Button
           disableRipple
-          endIcon={<KeyboardArrowDownRoundedIcon sx={{ fontSize: 18 }} />}
+          endIcon={<DateDropdownCaret />}
           onClick={(event) => setDateAnchorEl(event.currentTarget)}
           sx={{
+            height: 32,
             minWidth: 0,
             p: 0,
-            color: "#111827",
-            fontSize: 20,
+            color: "#020617",
+            fontSize: 32,
+            fontWeight: 600,
             lineHeight: 1,
+            letterSpacing: "-0.03em",
             "&:hover": {
               bgcolor: "transparent",
             },
             ".MuiButton-endIcon": {
               ml: 0.35,
+              mr: 0,
             },
           }}
         >
-          {formatDate(selectedDate)}
+          <Box
+            component="span"
+            sx={{
+              width: 123,
+              height: 32,
+              display: "inline-flex",
+              alignItems: "center",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {formatDate(selectedDate)}
+          </Box>
         </Button>
       </Stack>
 
-      <Stack spacing={2} sx={{ mb: 1.4 }}>
-        <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+      <Stack spacing={4.5} sx={{ mb: 1.4 }}>
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
           <SmallIconButton label="데이터 갱신" onClick={refreshMockData}>
-            <RefreshRoundedIcon sx={{ fontSize: 16 }} />
+            <SvgIconImage src="/icons/reset.svg" />
           </SmallIconButton>
           <SmallIconButton
             label="차트 선택 필터"
             onClick={(event) => setChartAnchorEl(event.currentTarget)}
           >
-            <FilterListRoundedIcon sx={{ fontSize: 16 }} />
+            <SvgIconImage src="/icons/filter.svg" />
           </SmallIconButton>
           <Button
             variant="outlined"
-            endIcon={<KeyboardArrowDownRoundedIcon sx={{ fontSize: 16 }} />}
+            endIcon={<SvgIconImage src="/icons/chevron-down.svg" />}
             onClick={(event) => setChartAnchorEl(event.currentTarget)}
             sx={{
-              height: 28,
-              minWidth: 160,
-              px: 1.2,
-              borderRadius: 1,
-              borderColor: "#cfd8e3",
-              color: "#344054",
+              height: 36,
+              minWidth: 0,
+              py: 0,
+              pl: "12px",
+              pr: "8px",
+              borderRadius: "2px",
+              borderColor: "#334155",
+              color: "#334155",
               bgcolor: "#ffffff",
               justifyContent: "space-between",
-              fontSize: 11,
-              gap: 0.75,
+              fontSize: 12,
+              fontWeight: 500,
+              lineHeight: 1,
+              letterSpacing: 0,
+              gap: "10px",
+              "&.MuiButton-outlined": {
+                borderWidth: 1,
+              },
               "&:hover": {
-                bgcolor: "#f7f9fc",
-                borderColor: "#c3cede",
+                bgcolor: "#ffffff",
+                borderColor: "#334155",
+              },
+              ".MuiButton-endIcon": {
+                ml: "10px",
+                mr: 0,
               },
             }}
           >
-            <Stack direction="row" spacing={0.7} sx={{ alignItems: "center", minWidth: 0 }}>
-              <ChartLogo chartType={selectedCharts[0] ?? "soundat"} />
+            <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", minWidth: 0 }}>
+              <ChartLogo chartType={selectedCharts[0] ?? "soundat"} size={18} />
               <Box component="span" sx={{ minWidth: 0 }}>
                 {selectedChartSummary}
               </Box>
@@ -515,8 +682,8 @@ export function DailyChartSetupPage() {
 
       <TableContainer
         sx={{
-          borderTop: "1px solid #eef2f7",
-          borderBottom: "1px solid #eef2f7",
+          borderTop: "1px solid #e5ebf2",
+          borderBottom: "1px solid #e5ebf2",
           overflow: "visible",
         }}
       >
@@ -524,55 +691,163 @@ export function DailyChartSetupPage() {
           aria-label="곡 차트 일간 기본 테이블"
           size="small"
           sx={{
+            width: chartTableWidth,
             tableLayout: "fixed",
             "& .MuiTableCell-root": {
-              borderBottom: "1px solid #f1f4f8",
-              px: 1.5,
+              boxSizing: "border-box",
+              borderBottom: "1px solid #e8edf4",
+              letterSpacing: 0,
+            },
+            "& .MuiTableHead-root .MuiTableRow-root": {
+              height: 38,
             },
             "& .MuiTableCell-head": {
-              height: 30,
+              height: 38,
               py: 0,
-              bgcolor: "#f7f9fc",
-              color: "#7a8596",
-              fontSize: 10,
-              lineHeight: 1,
+              bgcolor: "#f1f5f9",
+              color: "#334155",
+              ...chartHeaderTypography,
+              whiteSpace: "nowrap",
+              verticalAlign: "middle",
+            },
+            "& .MuiTableCell-head > *": {
+              ...chartHeaderTypography,
             },
             "& .MuiTableCell-body": {
-              height: 66,
+              height: chartTableRowHeight,
               py: 0,
-              color: "#202838",
+              color: "#010614",
               fontSize: 12,
+              lineHeight: "17px",
+              verticalAlign: "middle",
+            },
+            "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(1)": {
+              width: chartTableColumns.rank,
+              px: 0,
+            },
+            "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(2)": {
+              width: chartTableColumns.rankChange,
+              px: 0,
+            },
+            "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(3)": {
+              width: chartTableColumns.songInfo,
+              px: "20px",
+            },
+            "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(4)": {
+              width: chartTableColumns.soundat,
+              px: 0,
+            },
+            "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(5)": {
+              width: chartTableColumns.engagement,
+              px: "18px",
+            },
+            "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(6)": {
+              width: chartTableColumns.playCount,
+              px: "18px",
+            },
+            "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(7), & .MuiTableBody-root .MuiTableCell-root:nth-of-type(8)":
+              {
+                px: "12px",
+              },
+            "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(7)": {
+              width: chartTableColumns.genie,
+            },
+            "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(8)": {
+              width: chartTableColumns.melon,
+            },
+            "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(1)": {
+              p: "10px 20px",
+            },
+            "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(2)": {
+              width: chartTableColumns.songInfo,
+              p: "10px 20px",
+            },
+            "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(3)": {
+              width: chartTableColumns.soundat,
+              p: "10px 12px",
+            },
+            "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(4)": {
+              width: chartTableColumns.engagement,
+              p: "10px 18px",
+            },
+            "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(5)": {
+              width: chartTableColumns.playCount,
+              p: "10px 18px",
+            },
+            "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(6), & .MuiTableHead-root .MuiTableCell-root:nth-of-type(7)":
+              {
+                p: "10px 12px",
+              },
+            "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(6)": {
+              width: chartTableColumns.genie,
+            },
+            "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(7)": {
+              width: chartTableColumns.melon,
+            },
+            "& .MuiTableCell-body:nth-of-type(7), & .MuiTableCell-body:nth-of-type(8)": {
+              bgcolor: "#f8fafc",
+            },
+            "& .MuiTableCell-root:nth-of-type(5), & .MuiTableCell-root:nth-of-type(6), & .MuiTableCell-root:nth-of-type(7), & .MuiTableCell-root:nth-of-type(8)":
+              {
+                textAlign: "center",
+              },
+            "& .MuiTableCell-head:nth-of-type(5) > .MuiBox-root, & .MuiTableCell-head:nth-of-type(6) > .MuiBox-root, & .MuiTableCell-head:nth-of-type(7) > .MuiBox-root":
+              {
+                width: "100%",
+                height: 18,
+                justifyContent: "flex-end",
+              },
+            "& .MuiTableCell-head:nth-of-type(6) img, & .MuiTableCell-head:nth-of-type(7) img": {
+              width: 18,
+              height: 18,
+              flex: "0 0 18px",
             },
           }}
         >
+          <colgroup>
+            <col style={{ width: chartTableColumns.rank }} />
+            <col style={{ width: chartTableColumns.rankChange }} />
+            <col style={{ width: chartTableColumns.songInfo }} />
+            <col style={{ width: chartTableColumns.soundat }} />
+            <col style={{ width: chartTableColumns.engagement }} />
+            <col style={{ width: chartTableColumns.playCount }} />
+            <col style={{ width: chartTableColumns.genie }} />
+            <col style={{ width: chartTableColumns.melon }} />
+          </colgroup>
           <TableHead>
             <TableRow>
-              <TableCell width={118}>순위 / 변화량</TableCell>
-              <TableCell width={292}>곡 정보</TableCell>
-              <TableCell width={260}>
-                <Stack direction="row" sx={{ alignItems: "center", justifyContent: "center" }}>
-                  <InfoDot dark />
-                  <Box component="span" sx={{ ml: 0.6 }}>
-                    사운드엣 일간 차트
-                  </Box>
-                </Stack>
+              <TableCell colSpan={2} width={chartTableColumns.rank + chartTableColumns.rankChange}>
+                <ChartHeaderText>순위 / 변화량</ChartHeaderText>
               </TableCell>
-              <TableCell align="right" width={132}>
-                <Stack direction="row" sx={{ alignItems: "center", justifyContent: "flex-end" }}>
-                  인게이지먼트
-                  <InfoDot />
-                </Stack>
+              <TableCell width={chartTableColumns.songInfo}>
+                <ChartHeaderText>곡 정보</ChartHeaderText>
               </TableCell>
-              <TableCell align="right" width={160}>
-                재생수
+              <TableCell width={chartTableColumns.soundat}>
+                <ChartHeaderFrame gap="8px">
+                  <ChartLogo chartType="soundat" size={18} />
+                  <ChartHeaderText>사운드엣 일간 차트</ChartHeaderText>
+                </ChartHeaderFrame>
               </TableCell>
-              <TableCell align="center" width={58}>
-                <PlatformHeader label="G" color="#00c267" />
+              <TableCell align="center" width={chartTableColumns.engagement}>
+                <ChartHeaderFrame gap="4px" justifyContent="center">
+                  <ChartHeaderText>인게이지먼트</ChartHeaderText>
+                  <SvgIconImage src="/icons/circle-help.svg" size={12} />
+                </ChartHeaderFrame>
               </TableCell>
-              <TableCell align="center" width={60}>
-                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                  <ChartLogo chartType="melon" size={16} />
-                </Box>
+              <TableCell align="center" width={chartTableColumns.playCount}>
+                <ChartHeaderFrame justifyContent="flex-end">
+                  <ChartHeaderText>재생수</ChartHeaderText>
+                </ChartHeaderFrame>
+              </TableCell>
+              <TableCell align="center" width={chartTableColumns.genie}>
+                <ChartHeaderFrame justifyContent="flex-end">
+                  <ChartLogo chartType="melon" size={18} />
+                </ChartHeaderFrame>
+              </TableCell>
+              <TableCell align="center" width={chartTableColumns.melon}>
+                <ChartHeaderFrame justifyContent="flex-end">
+                  <ChartLogo chartType="ytmusic" size={18} src="/logos/youtube2.svg" />
+                </ChartHeaderFrame>
               </TableCell>
             </TableRow>
           </TableHead>
@@ -580,8 +855,11 @@ export function DailyChartSetupPage() {
             {isLoading
               ? skeletonRows.map((row) => (
                   <TableRow key={row}>
-                    <TableCell>
-                      <Skeleton width={68} height={20} />
+                    <TableCell align="center">
+                      <Skeleton width={18} height={20} sx={{ mx: "auto" }} />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Skeleton width={28} height={24} sx={{ mx: "auto" }} />
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
@@ -592,15 +870,15 @@ export function DailyChartSetupPage() {
                         </Box>
                       </Stack>
                     </TableCell>
-                    <TableCell>
-                      <Skeleton width={210} height={32} />
+                    <TableCell align="center">
+                      <Skeleton width={220} height={38} sx={{ mx: "auto" }} />
                     </TableCell>
-                    <TableCell align="right">
-                      <Skeleton width={48} sx={{ ml: "auto" }} />
+                    <TableCell align="center">
+                      <Skeleton width={48} sx={{ mx: "auto" }} />
                     </TableCell>
-                    <TableCell align="right">
-                      <Skeleton width={92} sx={{ ml: "auto" }} />
-                      <Skeleton width={36} sx={{ ml: "auto" }} />
+                    <TableCell align="center">
+                      <Skeleton width={92} sx={{ mx: "auto" }} />
+                      <Skeleton width={36} sx={{ mx: "auto" }} />
                     </TableCell>
                     <TableCell align="center">
                       <Skeleton width={28} sx={{ mx: "auto" }} />
@@ -616,7 +894,12 @@ export function DailyChartSetupPage() {
                     displayMode === "total"
                       ? formatNumber(row.totalPlayCount)
                       : formatSignedNumber(row.playCountDelta);
-                  const isPlayCountUp = row.playCountChangeRate >= 0;
+                  const playCountTrendIcon =
+                    row.playCountChangeRate > 0
+                      ? "\u2191"
+                      : row.playCountChangeRate < 0
+                        ? "\u2193"
+                        : "\u2013";
                   const isFocusedRow = rowIndex === 1;
 
                   return (
@@ -626,6 +909,9 @@ export function DailyChartSetupPage() {
                       sx={{
                         "&:hover td": {
                           bgcolor: "#fbfdff",
+                        },
+                        "&:hover td:nth-of-type(7), &:hover td:nth-of-type(8)": {
+                          bgcolor: "#f3f7fb",
                         },
                         ...(isFocusedRow
                           ? {
@@ -643,33 +929,43 @@ export function DailyChartSetupPage() {
                           : {}),
                       }}
                     >
-                      <TableCell>
-                        <Stack direction="row" spacing={1.35} sx={{ alignItems: "center" }}>
-                          <Typography sx={{ width: 24, textAlign: "right", fontSize: 12 }}>
-                            {row.rank}
+                      <TableCell align="center">
+                        <Typography
+                          sx={{
+                            color: "#010614",
+                            textAlign: "center",
+                            fontSize: 12,
+                            fontWeight: 500,
+                            lineHeight: "17px",
+                          }}
+                        >
+                          {row.rank}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Stack sx={{ alignItems: "center", justifyContent: "center" }}>
+                          <Typography
+                            sx={{
+                              color: rankChange.color,
+                              fontSize: 9,
+                              fontWeight: 500,
+                              lineHeight: "11px",
+                            }}
+                          >
+                            {rankChange.firstLine}
                           </Typography>
-                          <Box sx={{ minWidth: 36 }}>
+                          {rankChange.secondLine ? (
                             <Typography
                               sx={{
-                                color: rankChange.color,
+                                color: "#ff315c",
                                 fontSize: 9,
-                                lineHeight: 1.2,
+                                fontWeight: 500,
+                                lineHeight: "11px",
                               }}
                             >
-                              {rankChange.firstLine}
+                              {rankChange.secondLine}
                             </Typography>
-                            {rankChange.secondLine ? (
-                              <Typography
-                                sx={{
-                                  color: "#ff315c",
-                                  fontSize: 9,
-                                  lineHeight: 1.2,
-                                }}
-                              >
-                                {rankChange.secondLine}
-                              </Typography>
-                            ) : null}
-                          </Box>
+                          ) : null}
                         </Stack>
                       </TableCell>
                       <TableCell>
@@ -702,26 +998,27 @@ export function DailyChartSetupPage() {
                                   maxWidth: 126,
                                   color: "#111827",
                                   fontSize: 12,
+                                  fontWeight: 600,
+                                  lineHeight: "17px",
                                 }}
                               >
                                 {row.songName}
                               </Typography>
                               {row.hasMv ? (
                                 <Box
+                                  component="span"
                                   sx={{
                                     height: 14,
-                                    px: 0.45,
-                                    borderRadius: 0.5,
-                                    bgcolor: "#f0e8ff",
+                                    px: "4px",
+                                    bgcolor: "#eee7ff",
                                     color: "#6d52ff",
                                     display: "inline-flex",
                                     alignItems: "center",
-                                    gap: 0.25,
-                                    fontSize: 8,
-                                    lineHeight: 1,
+                                    fontSize: 9,
+                                    lineHeight: "14px",
+                                    whiteSpace: "nowrap",
                                   }}
                                 >
-                                  <VideoLibraryRoundedIcon sx={{ fontSize: 9 }} />
                                   MV
                                 </Box>
                               ) : null}
@@ -745,24 +1042,40 @@ export function DailyChartSetupPage() {
                           <DumbbellPreview points={row.dumbbellPoints} />
                         </Box>
                       </TableCell>
-                      <TableCell align="right">
-                        <Typography sx={{ color: "#1976f3", fontSize: 11 }}>
+                      <TableCell align="center">
+                        <Typography sx={{ color: "#0066ff", fontSize: 11, lineHeight: "17px" }}>
                           {row.engagement.toFixed(2)}
                         </Typography>
                       </TableCell>
-                      <TableCell align="right">
-                        <Typography sx={{ color: "#111827", fontSize: 12 }}>
+                      <TableCell align="center">
+                        <Typography
+                          sx={{
+                            color: "#010614",
+                            fontSize: 12,
+                            fontWeight: 500,
+                            lineHeight: "17px",
+                          }}
+                        >
                           {playCountValue}
                         </Typography>
                         <Typography
+                          component="span"
                           sx={{
                             mt: 0.35,
+                            mx: "auto",
+                            height: 14,
+                            px: "4px",
+                            borderRadius: "2px",
+                            bgcolor: getTrendBackground(row.playCountChangeRate),
                             color: getTrendColor(row.playCountChangeRate),
                             fontSize: 9,
-                            lineHeight: 1,
+                            lineHeight: "14px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          {isPlayCountUp ? "↑" : "↓"} {formatPercent(row.playCountChangeRate)}
+                          {playCountTrendIcon} {formatPercent(row.playCountChangeRate)}
                         </Typography>
                       </TableCell>
                       <TableCell align="center">
@@ -780,7 +1093,7 @@ export function DailyChartSetupPage() {
                 })}
             {!isLoading && visibleRows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={8} align="center">
                   <Typography sx={{ color: "#7a8596", py: 4, fontSize: 12 }}>
                     표시할 차트 데이터가 없습니다.
                   </Typography>
@@ -956,10 +1269,16 @@ export function DailyChartSetupPage() {
           paper: {
             sx: {
               mt: 1,
-              width: 330,
-              borderRadius: 1.25,
-              border: "1px solid #e1e7f0",
-              boxShadow: "0 14px 34px rgba(15, 23, 42, 0.14)",
+              width: 260,
+              borderRadius: "4px",
+              bgcolor: "#ffffff",
+              boxShadow: "0 0 25px 5px rgba(0, 0, 0, 0.2)",
+              "& .MuiList-root": {
+                display: "flex",
+                flexDirection: "column",
+                gap: "2px",
+                p: "12px 8px",
+              },
             },
           },
         }}
@@ -978,10 +1297,17 @@ export function DailyChartSetupPage() {
                 }
               }}
               sx={{
-                minHeight: 52,
-                px: 1.8,
-                gap: 1.45,
+                width: "100%",
+                minHeight: 38,
+                px: "10px",
+                py: "10px",
+                gap: "12px",
+                borderRadius: "2px",
                 cursor: disabled ? "not-allowed" : "pointer",
+                opacity: 1,
+                "&:hover": {
+                  bgcolor: "#f8fafc",
+                },
               }}
             >
               <Checkbox
@@ -991,17 +1317,22 @@ export function DailyChartSetupPage() {
                 checkedIcon={<ChartCheckboxIcon checked />}
                 sx={{
                   p: 0,
+                  width: 16,
+                  height: 16,
+                  flex: "0 0 16px",
                   color: CHECKBOX_INACTIVE_COLOR,
                   "&.Mui-checked": { color: CHECKBOX_ACTIVE_COLOR },
                 }}
               />
-              <ChartLogo chartType={chart.value} />
+              <ChartLogo chartType={chart.value} size={18} />
               <Box sx={{ minWidth: 0 }}>
                 <Typography
                   sx={{
-                    color: "#101828",
-                    fontSize: 17,
-                    lineHeight: 1.15,
+                    color: "#020617",
+                    fontSize: 14,
+                    fontWeight: 500,
+                    lineHeight: "14px",
+                    letterSpacing: 0,
                   }}
                 >
                   {chartChipLabels[chart.value]}

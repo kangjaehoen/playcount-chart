@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Providers } from "./providers";
+import "pretendard/dist/web/static/pretendard.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
