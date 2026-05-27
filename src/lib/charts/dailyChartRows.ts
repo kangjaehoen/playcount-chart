@@ -72,13 +72,34 @@ function createRankMap(songIds: number[]) {
   return new Map(songIds.map((songId, index) => [songId, index + 1]));
 }
 
-function calculateRankChange(currentRank: number, previousRank?: number): RankChange {
+function isRecentlyReleased(issueDate: string | undefined, chartDate: string) {
+  if (!issueDate) {
+    return false;
+  }
+
+  const issueTime = Date.parse(`${issueDate}T00:00:00.000Z`);
+  const chartTime = Date.parse(`${chartDate}T00:00:00.000Z`);
+
+  if (!Number.isFinite(issueTime) || !Number.isFinite(chartTime)) {
+    return false;
+  }
+
+  const daysSinceRelease = (chartTime - issueTime) / 86_400_000;
+
+  return daysSinceRelease >= 0 && daysSinceRelease <= 30;
+}
+
+function calculateRankChange(
+  currentRank: number,
+  previousRank?: number,
+  showNewBadge = false,
+): RankChange {
   if (!previousRank) {
-    return { type: "new", value: null };
+    return { type: "new", value: null, showNewBadge: true };
   }
 
   if (previousRank > currentRank) {
-    return { type: "up", value: previousRank - currentRank };
+    return { type: "up", value: previousRank - currentRank, showNewBadge };
   }
 
   if (previousRank < currentRank) {
@@ -177,11 +198,16 @@ export async function buildDailyChartRows({
     const playCountChangeRate =
       previousStats.totalPlayCount > 0 ? (playCountDelta / previousStats.totalPlayCount) * 100 : 0;
     const chartRanks = createChartRankRecord(selectedChartTypes, chartRankMaps, songId);
+    const rankChange = calculateRankChange(
+      rank,
+      previousRankMap.get(songId),
+      isRecentlyReleased(song?.issue_date, date),
+    );
 
     return {
       songId,
       rank,
-      rankChange: calculateRankChange(rank, previousRankMap.get(songId)),
+      rankChange,
       songName: song?.song_name ?? `Track ${songId}`,
       artistNames: song?.artist_names ?? "-",
       albumName: album?.name ?? "-",

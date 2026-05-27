@@ -1,7 +1,6 @@
 "use client";
 
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import KeyboardArrowLeftRoundedIcon from "@mui/icons-material/KeyboardArrowLeftRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
@@ -39,11 +38,15 @@ import { buildDailyChartRows } from "@/lib/charts/dailyChartRows";
 import { useChartStore } from "@/store/chartStore";
 
 const dateOptions = ["2026-03-01", "2026-02-28", "2026-02-27", "2026-02-26"];
-const pageButtons = [1, 2, 3, 4];
+const paginationButtonCount = 4;
 const skeletonRows = Array.from({ length: 10 }, (_, index) => index);
 const loadingDelayMs = 240;
 const chartTableWidth = 1080;
 const chartTableRowHeight = 88;
+const paginationHeight = 28;
+const paginationGap = 6;
+const paginationInk = "#020617";
+const paginationDisabled = "#cbd5e1";
 const chartTableColumns = {
   rank: 60,
   rankChange: 40,
@@ -60,6 +63,236 @@ const chartHeaderTypography = {
   fontWeight: 600,
   lineHeight: "17px",
   letterSpacing: 0,
+} as const;
+const chartRankCellSx = {
+  width: chartTableColumns.rank,
+  height: chartTableRowHeight,
+  p: "20px 8px 20px 20px",
+  boxSizing: "border-box",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-start",
+} as const;
+const chartRankNumberSx = {
+  width: "fit-content",
+  minWidth: 8,
+  height: 22,
+  flex: "0 0 auto",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#020617",
+  textAlign: "center",
+  fontSize: 16,
+  fontWeight: 500,
+  lineHeight: "22px",
+  letterSpacing: 0,
+} as const;
+const chartRankChangeCellSx = {
+  width: chartTableColumns.rankChange,
+  height: chartTableRowHeight,
+  p: "20px 0",
+  boxSizing: "border-box",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "flex-start",
+  gap: "2px",
+} as const;
+const chartRankChangeCenteredCellSx = {
+  ...chartRankChangeCellSx,
+  p: 0,
+  justifyContent: "center",
+  gap: 0,
+} as const;
+const chartRankChangeTrendSx = {
+  width: chartTableColumns.rankChange,
+  height: 20,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "3px",
+} as const;
+const chartRankChangeNumberSx = {
+  width: "fit-content",
+  minWidth: 9,
+  height: 20,
+  flex: "0 0 auto",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 11,
+  fontWeight: 500,
+  lineHeight: "20px",
+  letterSpacing: 0,
+} as const;
+const chartRankChangeDashSx = {
+  width: "fit-content",
+  minWidth: 7,
+  height: 20,
+  flex: "0 0 auto",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#64748b",
+  fontSize: 11,
+  fontWeight: 500,
+  lineHeight: "20px",
+  letterSpacing: 0,
+} as const;
+const chartRankChangeNewSx = {
+  width: "fit-content",
+  minWidth: 24,
+  height: 11,
+  flex: "0 0 auto",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#dc2626",
+  fontSize: 10,
+  fontWeight: 500,
+  lineHeight: "11px",
+  letterSpacing: 0,
+} as const;
+const songInfoFrameSx = {
+  width: "100%",
+  minWidth: 0,
+  height: 48,
+  display: "flex",
+  alignItems: "center",
+  gap: "16px",
+} as const;
+const songAlbumImageSx = {
+  width: 48,
+  height: 48,
+  flex: "0 0 48px",
+  border: "1px solid rgba(0, 0, 0, 0.1)",
+  objectFit: "cover",
+} as const;
+const songTextFrameSx = {
+  width: 184,
+  minWidth: 0,
+  height: 42,
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  gap: "8px",
+} as const;
+const songTitleSx = {
+  maxWidth: 160,
+  height: 16,
+  color: "#020617",
+  fontSize: 16,
+  fontWeight: 600,
+  lineHeight: "16px",
+  letterSpacing: 0,
+} as const;
+const songMetaRowSx = {
+  maxWidth: 184,
+  height: 18,
+  minWidth: 0,
+  display: "flex",
+  alignItems: "center",
+  gap: "4px",
+  overflow: "hidden",
+} as const;
+const songMetaChipSx = {
+  height: 18,
+  minWidth: 0,
+  px: "6px",
+  borderRadius: "2px",
+  bgcolor: "#f1f5f9",
+  color: "#1e293b",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flex: "0 1 auto",
+  fontSize: 11,
+  fontWeight: 500,
+  lineHeight: "11px",
+  letterSpacing: 0,
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+} as const;
+const songMetaArtistChipSx = {
+  ...songMetaChipSx,
+  maxWidth: 86,
+  letterSpacing: "-0.03em",
+} as const;
+const songMetaDateChipSx = {
+  ...songMetaChipSx,
+  flex: "0 0 auto",
+} as const;
+const songMetaMvChipSx = {
+  ...songMetaChipSx,
+  flex: "0 0 auto",
+  bgcolor: "#ede9fe",
+  color: "#7c3aed",
+  letterSpacing: "-0.03em",
+} as const;
+const chartMetricCellSx = {
+  width: "100%",
+  height: chartTableRowHeight,
+  p: "12px 18px",
+  boxSizing: "border-box",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  gap: "5px",
+} as const;
+const engagementCellSx = {
+  ...chartMetricCellSx,
+  alignItems: "flex-end",
+  textAlign: "right",
+} as const;
+const engagementValueSx = {
+  width: "fit-content",
+  minWidth: 33,
+  color: "#2563eb",
+  fontSize: 13,
+  fontWeight: 500,
+  lineHeight: "13px",
+  letterSpacing: 0,
+} as const;
+const playCountCellSx = {
+  ...chartMetricCellSx,
+  alignItems: "flex-end",
+  textAlign: "right",
+} as const;
+const playCountValueSx = {
+  color: "#010614",
+  fontSize: 14,
+  fontWeight: 500,
+  lineHeight: "18px",
+  letterSpacing: 0,
+  whiteSpace: "nowrap",
+} as const;
+const playCountTrendBadgeSx = {
+  height: 17,
+  px: "6px",
+  borderRadius: "2px",
+  fontSize: 10,
+  fontWeight: 500,
+  lineHeight: "17px",
+  letterSpacing: 0,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  whiteSpace: "nowrap",
+} as const;
+const platformRankCellSx = {
+  ...chartMetricCellSx,
+  alignItems: "flex-end",
+  textAlign: "right",
+} as const;
+const platformRankValueSx = {
+  color: "#a3a8b3",
+  fontSize: 13,
+  fontWeight: 500,
+  lineHeight: "17px",
+  letterSpacing: 0,
+  whiteSpace: "nowrap",
 } as const;
 
 const numberFormatter = new Intl.NumberFormat("ko-KR");
@@ -129,6 +362,66 @@ function SvgIconImage({ src, size = 12 }: { src: string; size?: number }) {
         flex: `0 0 ${size}px`,
       }}
     />
+  );
+}
+
+function RankChangeTriangle({ direction, color }: { direction: "up" | "down"; color: string }) {
+  return (
+    <Box
+      component="svg"
+      aria-hidden
+      viewBox="0 0 8 8"
+      sx={{
+        width: 8,
+        height: 8,
+        display: "block",
+        flex: "0 0 8px",
+      }}
+    >
+      <polygon points={direction === "up" ? "4 1 7 6 1 6" : "1 2 7 2 4 7"} fill={color} />
+    </Box>
+  );
+}
+
+function RankChangeIndicator({ rankChange }: { rankChange: RankChange }) {
+  if (rankChange.type === "new") {
+    return (
+      <Box sx={chartRankChangeCenteredCellSx}>
+        <Typography component="span" sx={chartRankChangeNewSx}>
+          NEW
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (rankChange.type === "same") {
+    return (
+      <Box sx={chartRankChangeCenteredCellSx}>
+        <Typography component="span" sx={chartRankChangeDashSx}>
+          -
+        </Typography>
+      </Box>
+    );
+  }
+
+  const direction = rankChange.type;
+  const color = direction === "up" ? "#16a34a" : "#dc2626";
+  const showNewBadge = Boolean(rankChange.showNewBadge);
+
+  return (
+    <Box sx={showNewBadge ? chartRankChangeCellSx : chartRankChangeCenteredCellSx}>
+      <Box sx={chartRankChangeTrendSx}>
+        <RankChangeTriangle direction={direction} color={color} />
+        <Typography component="span" sx={{ ...chartRankChangeNumberSx, color }}>
+          {rankChange.value}
+        </Typography>
+      </Box>
+      {showNewBadge ? (
+        <Typography component="span" sx={chartRankChangeNewSx}>
+          NEW
+        </Typography>
+      ) : null}
+    </Box>
   );
 }
 
@@ -250,33 +543,7 @@ function formatPercent(value: number) {
 }
 
 function formatRank(rank: number | null) {
-  return rank ? `${rank}위` : "-";
-}
-
-function getRankChangeView(rankChange: RankChange) {
-  if (rankChange.type === "new") {
-    return {
-      color: "#00a76f",
-      firstLine: "NEW",
-      secondLine: "",
-    };
-  }
-
-  if (rankChange.type === "same") {
-    return {
-      color: "#a7b0bf",
-      firstLine: "-",
-      secondLine: "",
-    };
-  }
-
-  const isUp = rankChange.type === "up";
-
-  return {
-    color: isUp ? "#00a76f" : "#ff315c",
-    firstLine: `${isUp ? "▲" : "▼"} ${rankChange.value}`,
-    secondLine: "",
-  };
+  return rank ? `${rank} 위` : "-";
 }
 
 function getTrendColor(value: number) {
@@ -401,6 +668,29 @@ function SmallIconButton({
   );
 }
 
+function PageSizeSelectIcon({ className }: { className?: string }) {
+  return (
+    <Box
+      component="span"
+      className={className}
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        pointerEvents: "none",
+        "&::before": {
+          content: '""',
+          width: 0,
+          height: 0,
+          borderLeft: "3.5px solid transparent",
+          borderRight: "3.5px solid transparent",
+          borderTop: "6px solid currentColor",
+        },
+      }}
+    />
+  );
+}
+
 export function DailyChartSetupPage() {
   const selectedDate = useChartStore((state) => state.selectedDate);
   const selectedCharts = useChartStore((state) => state.selectedCharts);
@@ -425,11 +715,27 @@ export function DailyChartSetupPage() {
     () => getSelectedChartSummary(selectedCharts),
     [selectedCharts],
   );
-  const visibleRows = useMemo(
-    () => rows.slice(page * pageSize, page * pageSize + pageSize),
-    [page, pageSize, rows],
-  );
   const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const clampedPage = Math.min(page, pageCount - 1);
+  const visibleRows = useMemo(
+    () => rows.slice(clampedPage * pageSize, clampedPage * pageSize + pageSize),
+    [clampedPage, pageSize, rows],
+  );
+  const visiblePageNumbers = useMemo(() => {
+    const groupStart =
+      Math.floor(clampedPage / paginationButtonCount) * paginationButtonCount + 1;
+    const groupEnd = Math.min(pageCount, groupStart + paginationButtonCount - 1);
+
+    return Array.from({ length: groupEnd - groupStart + 1 }, (_, index) => groupStart + index);
+  }, [clampedPage, pageCount]);
+  const lastVisiblePageNumber = visiblePageNumbers[visiblePageNumbers.length - 1] ?? 1;
+  const showTrailingEllipsis = lastVisiblePageNumber < pageCount;
+
+  useEffect(() => {
+    if (page > pageCount - 1) {
+      setPage(pageCount - 1);
+    }
+  }, [page, pageCount, setPage]);
 
   useEffect(() => {
     let ignore = false;
@@ -610,56 +916,91 @@ export function DailyChartSetupPage() {
       </Stack>
 
       <Stack spacing={4.5} sx={{ mb: 1.4 }}>
-        <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-          <SmallIconButton label="데이터 갱신" onClick={refreshMockData}>
-            <SvgIconImage src="/icons/reset.svg" />
-          </SmallIconButton>
-          <SmallIconButton
-            label="차트 선택 필터"
-            onClick={(event) => setChartAnchorEl(event.currentTarget)}
-          >
-            <SvgIconImage src="/icons/filter.svg" />
-          </SmallIconButton>
-          <Button
-            variant="outlined"
-            endIcon={<SvgIconImage src="/icons/chevron-down.svg" />}
-            onClick={(event) => setChartAnchorEl(event.currentTarget)}
-            sx={{
-              height: 36,
-              minWidth: 0,
-              py: 0,
-              pl: "12px",
-              pr: "8px",
-              borderRadius: "2px",
-              borderColor: "#334155",
-              color: "#334155",
-              bgcolor: "#ffffff",
-              justifyContent: "space-between",
-              fontSize: 12,
-              fontWeight: 500,
-              lineHeight: 1,
-              letterSpacing: 0,
-              gap: "10px",
-              "&.MuiButton-outlined": {
-                borderWidth: 1,
-              },
-              "&:hover": {
-                bgcolor: "#ffffff",
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 2,
+          }}
+        >
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", minWidth: 0 }}>
+            <SmallIconButton label="데이터 갱신" onClick={refreshMockData}>
+              <SvgIconImage src="/icons/reset.svg" />
+            </SmallIconButton>
+            <SmallIconButton
+              label="차트 선택 필터"
+              onClick={(event) => setChartAnchorEl(event.currentTarget)}
+            >
+              <SvgIconImage src="/icons/filter.svg" />
+            </SmallIconButton>
+            <Button
+              variant="outlined"
+              endIcon={<SvgIconImage src="/icons/chevron-down.svg" />}
+              onClick={(event) => setChartAnchorEl(event.currentTarget)}
+              sx={{
+                height: 36,
+                minWidth: 0,
+                py: 0,
+                pl: "12px",
+                pr: "8px",
+                borderRadius: "2px",
                 borderColor: "#334155",
+                color: "#334155",
+                bgcolor: "#ffffff",
+                justifyContent: "space-between",
+                fontSize: 12,
+                fontWeight: 500,
+                lineHeight: 1,
+                letterSpacing: 0,
+                gap: "10px",
+                "&.MuiButton-outlined": {
+                  borderWidth: 1,
+                },
+                "&:hover": {
+                  bgcolor: "#ffffff",
+                  borderColor: "#334155",
+                },
+                ".MuiButton-endIcon": {
+                  ml: "10px",
+                  mr: 0,
+                },
+              }}
+            >
+              <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", minWidth: 0 }}>
+                <ChartLogo chartType={selectedCharts[0] ?? "soundat"} size={18} />
+                <Box component="span" sx={{ minWidth: 0 }}>
+                  {selectedChartSummary}
+                </Box>
+              </Stack>
+            </Button>
+          </Stack>
+
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={displayMode}
+            onChange={handleDisplayModeChange}
+            sx={{
+              flex: "0 0 auto",
+              "& .MuiToggleButton-root": {
+                height: 32,
+                px: 1.5,
+                borderColor: "#dce4ef",
+                color: "#64748b",
+                fontSize: 11,
+                fontWeight: 500,
+                lineHeight: 1,
               },
-              ".MuiButton-endIcon": {
-                ml: "10px",
-                mr: 0,
+              "& .Mui-selected": {
+                color: "#020617 !important",
+                bgcolor: "#f8fafc !important",
               },
             }}
           >
-            <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", minWidth: 0 }}>
-              <ChartLogo chartType={selectedCharts[0] ?? "soundat"} size={18} />
-              <Box component="span" sx={{ minWidth: 0 }}>
-                {selectedChartSummary}
-              </Box>
-            </Stack>
-          </Button>
+            <ToggleButton value="total">전체 숫자</ToggleButton>
+            <ToggleButton value="delta">증감량 기준</ToggleButton>
+          </ToggleButtonGroup>
         </Stack>
 
         <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", flexWrap: "wrap" }}>
@@ -695,7 +1036,7 @@ export function DailyChartSetupPage() {
             tableLayout: "fixed",
             "& .MuiTableCell-root": {
               boxSizing: "border-box",
-              borderBottom: "1px solid #e8edf4",
+              borderBottom: "1px solid #f1f5f9",
               letterSpacing: 0,
             },
             "& .MuiTableHead-root .MuiTableRow-root": {
@@ -739,15 +1080,15 @@ export function DailyChartSetupPage() {
             },
             "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(5)": {
               width: chartTableColumns.engagement,
-              px: "18px",
+              p: 0,
             },
             "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(6)": {
               width: chartTableColumns.playCount,
-              px: "18px",
+              p: 0,
             },
             "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(7), & .MuiTableBody-root .MuiTableCell-root:nth-of-type(8)":
               {
-                px: "12px",
+                p: 0,
               },
             "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(7)": {
               width: chartTableColumns.genie,
@@ -856,40 +1197,56 @@ export function DailyChartSetupPage() {
               ? skeletonRows.map((row) => (
                   <TableRow key={row}>
                     <TableCell align="center">
-                      <Skeleton width={18} height={20} sx={{ mx: "auto" }} />
+                      <Box sx={chartRankCellSx}>
+                        <Skeleton width={12} height={22} />
+                      </Box>
                     </TableCell>
                     <TableCell align="center">
-                      <Skeleton width={28} height={24} sx={{ mx: "auto" }} />
+                      <Box sx={chartRankChangeCellSx}>
+                        <Skeleton width={24} height={20} />
+                        <Skeleton width={24} height={11} />
+                      </Box>
                     </TableCell>
                     <TableCell>
-                      <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
-                        <Skeleton variant="rectangular" width={38} height={38} />
-                        <Box sx={{ flex: 1 }}>
-                          <Skeleton width="48%" />
-                          <Skeleton width="62%" />
+                      <Box sx={songInfoFrameSx}>
+                        <Skeleton variant="rectangular" width={48} height={48} />
+                        <Box sx={songTextFrameSx}>
+                          <Skeleton width={112} height={16} />
+                          <Box sx={songMetaRowSx}>
+                            <Skeleton variant="rounded" width={50} height={18} />
+                            <Skeleton variant="rounded" width={53} height={18} />
+                            <Skeleton variant="rounded" width={29} height={18} />
+                          </Box>
                         </Box>
-                      </Stack>
+                      </Box>
                     </TableCell>
                     <TableCell align="center">
                       <Skeleton width={220} height={38} sx={{ mx: "auto" }} />
                     </TableCell>
                     <TableCell align="center">
-                      <Skeleton width={48} sx={{ mx: "auto" }} />
+                      <Box sx={engagementCellSx}>
+                        <Skeleton width={33} height={13} />
+                      </Box>
                     </TableCell>
                     <TableCell align="center">
-                      <Skeleton width={92} sx={{ mx: "auto" }} />
-                      <Skeleton width={36} sx={{ mx: "auto" }} />
+                      <Box sx={playCountCellSx}>
+                        <Skeleton width={68} height={18} />
+                        <Skeleton variant="rounded" width={46} height={17} />
+                      </Box>
                     </TableCell>
                     <TableCell align="center">
-                      <Skeleton width={28} sx={{ mx: "auto" }} />
+                      <Box sx={platformRankCellSx}>
+                        <Skeleton width={42} height={17} />
+                      </Box>
                     </TableCell>
                     <TableCell align="center">
-                      <Skeleton width={28} sx={{ mx: "auto" }} />
+                      <Box sx={platformRankCellSx}>
+                        <Skeleton width={42} height={17} />
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))
               : visibleRows.map((row, rowIndex) => {
-                  const rankChange = getRankChangeView(row.rankChange);
                   const playCountValue =
                     displayMode === "total"
                       ? formatNumber(row.totalPlayCount)
@@ -930,112 +1287,42 @@ export function DailyChartSetupPage() {
                       }}
                     >
                       <TableCell align="center">
-                        <Typography
-                          sx={{
-                            color: "#010614",
-                            textAlign: "center",
-                            fontSize: 12,
-                            fontWeight: 500,
-                            lineHeight: "17px",
-                          }}
-                        >
-                          {row.rank}
-                        </Typography>
+                        <Box sx={chartRankCellSx}>
+                          <Typography component="span" sx={chartRankNumberSx}>
+                            {row.rank}
+                          </Typography>
+                        </Box>
                       </TableCell>
                       <TableCell align="center">
-                        <Stack sx={{ alignItems: "center", justifyContent: "center" }}>
-                          <Typography
-                            sx={{
-                              color: rankChange.color,
-                              fontSize: 9,
-                              fontWeight: 500,
-                              lineHeight: "11px",
-                            }}
-                          >
-                            {rankChange.firstLine}
-                          </Typography>
-                          {rankChange.secondLine ? (
-                            <Typography
-                              sx={{
-                                color: "#ff315c",
-                                fontSize: 9,
-                                fontWeight: 500,
-                                lineHeight: "11px",
-                              }}
-                            >
-                              {rankChange.secondLine}
-                            </Typography>
-                          ) : null}
-                        </Stack>
+                        <RankChangeIndicator rankChange={row.rankChange} />
                       </TableCell>
                       <TableCell>
-                        <Stack
-                          direction="row"
-                          spacing={1.25}
-                          sx={{ alignItems: "center", minWidth: 0 }}
-                        >
+                        <Box sx={songInfoFrameSx}>
                           <Box
                             component="img"
                             src={row.albumImageUrl}
                             alt={row.albumName}
-                            sx={{
-                              width: 38,
-                              height: 38,
-                              flex: "0 0 auto",
-                              border: "1px solid #e5ebf2",
-                              objectFit: "cover",
-                            }}
+                            sx={songAlbumImageSx}
                           />
-                          <Box sx={{ minWidth: 0 }}>
-                            <Stack
-                              direction="row"
-                              spacing={0.55}
-                              sx={{ alignItems: "center", minWidth: 0 }}
-                            >
-                              <Typography
-                                noWrap
-                                sx={{
-                                  maxWidth: 126,
-                                  color: "#111827",
-                                  fontSize: 12,
-                                  fontWeight: 600,
-                                  lineHeight: "17px",
-                                }}
-                              >
-                                {row.songName}
-                              </Typography>
+                          <Box sx={songTextFrameSx}>
+                            <Typography noWrap sx={songTitleSx}>
+                              {row.songName}
+                            </Typography>
+                            <Box sx={songMetaRowSx}>
+                              <Box component="span" sx={songMetaArtistChipSx}>
+                                {row.artistNames}
+                              </Box>
+                              <Box component="span" sx={songMetaDateChipSx}>
+                                {formatDate(row.issueDate)}
+                              </Box>
                               {row.hasMv ? (
-                                <Box
-                                  component="span"
-                                  sx={{
-                                    height: 14,
-                                    px: "4px",
-                                    bgcolor: "#eee7ff",
-                                    color: "#6d52ff",
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    fontSize: 9,
-                                    lineHeight: "14px",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
+                                <Box component="span" sx={songMetaMvChipSx}>
                                   MV
                                 </Box>
                               ) : null}
-                            </Stack>
-                            <Typography
-                              noWrap
-                              sx={{
-                                maxWidth: 190,
-                                mt: 0.45,
-                                color: "#6b7483",
-                                fontSize: 9.5,
-                              }}
-                            >
-                              {row.artistNames} · {formatDate(row.issueDate)} · {row.albumType}
-                            </Typography>
+                            </Box>
                           </Box>
-                        </Stack>
+                        </Box>
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: "flex", justifyContent: "center" }}>
@@ -1043,50 +1330,40 @@ export function DailyChartSetupPage() {
                         </Box>
                       </TableCell>
                       <TableCell align="center">
-                        <Typography sx={{ color: "#0066ff", fontSize: 11, lineHeight: "17px" }}>
-                          {row.engagement.toFixed(2)}
-                        </Typography>
+                        <Box sx={engagementCellSx}>
+                          <Typography sx={engagementValueSx}>
+                            {row.engagement.toFixed(2)}
+                          </Typography>
+                        </Box>
                       </TableCell>
                       <TableCell align="center">
-                        <Typography
-                          sx={{
-                            color: "#010614",
-                            fontSize: 12,
-                            fontWeight: 500,
-                            lineHeight: "17px",
-                          }}
-                        >
-                          {playCountValue}
-                        </Typography>
-                        <Typography
-                          component="span"
-                          sx={{
-                            mt: 0.35,
-                            mx: "auto",
-                            height: 14,
-                            px: "4px",
-                            borderRadius: "2px",
-                            bgcolor: getTrendBackground(row.playCountChangeRate),
-                            color: getTrendColor(row.playCountChangeRate),
-                            fontSize: 9,
-                            lineHeight: "14px",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {playCountTrendIcon} {formatPercent(row.playCountChangeRate)}
-                        </Typography>
+                        <Box sx={playCountCellSx}>
+                          <Typography sx={playCountValueSx}>{playCountValue}</Typography>
+                          <Typography
+                            component="span"
+                            sx={{
+                              ...playCountTrendBadgeSx,
+                              bgcolor: getTrendBackground(row.playCountChangeRate),
+                              color: getTrendColor(row.playCountChangeRate),
+                            }}
+                          >
+                            {playCountTrendIcon} {formatPercent(row.playCountChangeRate)}
+                          </Typography>
+                        </Box>
                       </TableCell>
                       <TableCell align="center">
-                        <Typography sx={{ color: "#8a94a6", fontSize: 11 }}>
-                          {formatRank(row.genieRank)}
-                        </Typography>
+                        <Box sx={platformRankCellSx}>
+                          <Typography sx={platformRankValueSx}>
+                            {formatRank(row.genieRank)}
+                          </Typography>
+                        </Box>
                       </TableCell>
                       <TableCell align="center">
-                        <Typography sx={{ color: "#8a94a6", fontSize: 11 }}>
-                          {formatRank(row.melonRank)}
-                        </Typography>
+                        <Box sx={platformRankCellSx}>
+                          <Typography sx={platformRankValueSx}>
+                            {formatRank(row.melonRank)}
+                          </Typography>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   );
@@ -1108,111 +1385,247 @@ export function DailyChartSetupPage() {
         direction="row"
         sx={{
           alignItems: "center",
-          justifyContent: "space-between",
-          mt: 3.2,
+          justifyContent: "flex-end",
+          gap: "24px",
+          width: chartTableWidth,
+          mt: "24px",
+          height: paginationHeight,
         }}
       >
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={displayMode}
-          onChange={handleDisplayModeChange}
-          sx={{
-            "& .MuiToggleButton-root": {
-              height: 28,
-              px: 1.25,
-              borderColor: "#dce4ef",
-              color: "#7a8596",
-              fontSize: 10,
-            },
-            "& .Mui-selected": {
-              color: "#111827 !important",
-              bgcolor: "#f4f7fb !important",
-            },
-          }}
-        >
-          <ToggleButton value="total">전체 숫자</ToggleButton>
-          <ToggleButton value="delta">증감량 기준</ToggleButton>
-        </ToggleButtonGroup>
-
-        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-          <FormControl size="small">
-            <Select
-              value={pageSize}
-              onChange={handlePageSizeChange}
-              IconComponent={KeyboardArrowDownRoundedIcon}
-              sx={{
-                width: 106,
-                height: 28,
-                borderRadius: 1,
-                color: "#5e6878",
-                fontSize: 10,
-                ".MuiSelect-select": {
-                  py: 0,
-                  pl: 1,
-                  pr: "24px !important",
-                },
-                ".MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#cfd8e3",
-                },
-              }}
-            >
-              {[10, 30, 50, 100].map((size) => (
-                <MenuItem key={size} value={size}>
-                  페이지당 {size}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <IconButton
-              aria-label="이전 페이지"
-              disabled={page === 0}
-              onClick={() => setPage(Math.max(0, page - 1))}
-              size="small"
-              sx={{ width: 22, height: 22, color: "#6b7483" }}
-            >
-              <KeyboardArrowLeftRoundedIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-            {pageButtons.map((pageNumber) => {
-              const pageIndex = pageNumber - 1;
-              const selected = page === pageIndex;
-
-              return (
-                <Button
-                  key={pageNumber}
-                  onClick={() => setPage(Math.min(pageIndex, pageCount - 1))}
-                  disabled={pageIndex >= pageCount}
+        <FormControl size="small" variant="outlined">
+          <Select
+            value={pageSize}
+            onChange={handlePageSizeChange}
+            IconComponent={PageSizeSelectIcon}
+            renderValue={(value) => (
+              <Stack
+                direction="row"
+                sx={{
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  minWidth: 0,
+                }}
+              >
+                <Typography
+                  component="span"
                   sx={{
-                    minWidth: 22,
-                    width: 22,
-                    height: 22,
-                    p: 0,
-                    borderRadius: 0.5,
-                    bgcolor: selected ? "#0b1020" : "transparent",
-                    color: selected ? "#ffffff" : "#6b7483",
-                    fontSize: 10,
-                    "&:hover": {
-                      bgcolor: selected ? "#0b1020" : "#f4f7fb",
-                    },
+                    color: "#64748b",
+                    fontSize: 11,
+                    fontWeight: 500,
+                    lineHeight: "11px",
+                    letterSpacing: 0,
+                    whiteSpace: "nowrap",
+                    flex: "0 0 auto",
                   }}
                 >
-                  {pageNumber}
-                </Button>
-              );
-            })}
-            <Typography sx={{ color: "#8a94a6", fontSize: 10 }}>...</Typography>
-            <IconButton
-              aria-label="다음 페이지"
-              disabled={page >= pageCount - 1}
-              onClick={() => setPage(Math.min(pageCount - 1, page + 1))}
-              size="small"
-              sx={{ width: 22, height: 22, color: "#6b7483" }}
+                  페이지 당 행 수
+                </Typography>
+                <Typography
+                  component="span"
+                  sx={{
+                    color: paginationInk,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    lineHeight: "12px",
+                    letterSpacing: 0,
+                    mr: "11px",
+                    flex: "0 0 auto",
+                  }}
+                >
+                  {value}
+                </Typography>
+              </Stack>
+            )}
+            MenuProps={{
+              slotProps: {
+                paper: {
+                  sx: {
+                    mt: 0.75,
+                    minWidth: "111px !important",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "2px",
+                    boxShadow: "0 10px 24px rgba(15, 23, 42, 0.12)",
+                    "& .MuiMenuItem-root": {
+                      minHeight: 28,
+                      px: "10px",
+                      color: paginationInk,
+                      fontSize: 12,
+                      fontWeight: 500,
+                      lineHeight: "12px",
+                      letterSpacing: 0,
+                    },
+                  },
+                },
+                list: {
+                  sx: {
+                    py: 0.5,
+                  },
+                },
+              },
+            }}
+            sx={{
+              width: 111,
+              height: paginationHeight,
+              borderRadius: "2px",
+              color: paginationInk,
+              bgcolor: "#ffffff",
+              fontFamily: "Pretendard, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+              fontSize: 12,
+              fontWeight: 500,
+              lineHeight: "12px",
+              letterSpacing: 0,
+              "& .MuiSelect-select": {
+                width: "100%",
+                height: paginationHeight,
+                minHeight: "0 !important",
+                boxSizing: "border-box",
+                display: "flex",
+                alignItems: "center",
+                py: 0,
+                pl: "10px",
+                pr: "8px !important",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: paginationInk,
+              },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: paginationInk,
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderWidth: 1,
+                borderColor: paginationInk,
+              },
+              "& .MuiSelect-icon": {
+                top: "50%",
+                right: 8,
+                width: 7,
+                height: 6,
+                color: paginationInk,
+                transform: "translateY(-50%)",
+              },
+              "& .MuiSelect-iconOpen": {
+                transform: "translateY(-50%) rotate(180deg)",
+              },
+            }}
+          >
+            {[10, 30, 50, 100].map((size) => (
+              <MenuItem key={size} value={size}>
+                페이지 당 행 수 {size}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: "center",
+            gap: `${paginationGap}px`,
+            height: paginationHeight,
+          }}
+        >
+          <IconButton
+            aria-label="이전 페이지"
+            disabled={clampedPage === 0}
+            onClick={() => setPage(Math.max(0, clampedPage - 1))}
+            size="small"
+            sx={{
+              width: paginationHeight,
+              height: paginationHeight,
+              p: 0,
+              borderRadius: "2px",
+              color: paginationInk,
+              "&.Mui-disabled": {
+                color: paginationDisabled,
+              },
+              "&:hover": {
+                bgcolor: "#f8fafc",
+              },
+            }}
+          >
+            <KeyboardArrowLeftRoundedIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+          {visiblePageNumbers.map((pageNumber) => {
+            const pageIndex = pageNumber - 1;
+            const selected = clampedPage === pageIndex;
+
+            return (
+              <Button
+                key={pageNumber}
+                onClick={() => setPage(pageIndex)}
+                aria-current={selected ? "page" : undefined}
+                disableElevation
+                sx={{
+                  minWidth: paginationHeight,
+                  width: paginationHeight,
+                  height: paginationHeight,
+                  p: 0,
+                  borderRadius: "2px",
+                  bgcolor: selected ? paginationInk : "transparent",
+                  color: selected ? "#ffffff" : paginationInk,
+                  fontFamily:
+                    "Pretendard, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  lineHeight: "12px",
+                  letterSpacing: 0,
+                  textTransform: "none",
+                  "&:hover": {
+                    bgcolor: selected ? paginationInk : "#f8fafc",
+                  },
+                  "&.Mui-disabled": {
+                    color: paginationDisabled,
+                    bgcolor: "transparent",
+                  },
+                }}
+              >
+                {pageNumber}
+              </Button>
+            );
+          })}
+          {showTrailingEllipsis ? (
+            <Typography
+              component="span"
+              sx={{
+                width: paginationHeight,
+                height: paginationHeight,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: paginationInk,
+                fontFamily:
+                  "Pretendard, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+                fontSize: 12,
+                fontWeight: 500,
+                lineHeight: "12px",
+                letterSpacing: 0,
+              }}
             >
-              <KeyboardArrowRightRoundedIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Stack>
+              ...
+            </Typography>
+          ) : null}
+          <IconButton
+            aria-label="다음 페이지"
+            disabled={clampedPage >= pageCount - 1}
+            onClick={() => setPage(Math.min(pageCount - 1, clampedPage + 1))}
+            size="small"
+            sx={{
+              width: paginationHeight,
+              height: paginationHeight,
+              p: 0,
+              borderRadius: "2px",
+              color: paginationInk,
+              "&.Mui-disabled": {
+                color: paginationDisabled,
+              },
+              "&:hover": {
+                bgcolor: "#f8fafc",
+              },
+            }}
+          >
+            <KeyboardArrowRightRoundedIcon sx={{ fontSize: 20 }} />
+          </IconButton>
         </Stack>
       </Stack>
 

@@ -94,10 +94,12 @@ export type RankChange =
   | {
       type: "new";
       value: null;
+      showNewBadge?: boolean;
     }
   | {
       type: "up" | "down" | "same";
       value: number;
+      showNewBadge?: boolean;
     };
 
 export type NormalizedSongStats = Record<StatsPlatform, number> & {
