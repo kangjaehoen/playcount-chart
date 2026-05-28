@@ -317,7 +317,7 @@ const chartLogoSrc: Record<ChartType, string> = {
   spotify: "/logos/spotify.svg",
 };
 const chartFilterLogoSrc: Partial<Record<ChartType, string>> = {
-  soundat: "/logos/soundat2.svg",
+  soundat: "/logos/soundat.svg",
   ytmusic: "/logos/youtube2.svg",
 };
 
@@ -528,12 +528,12 @@ function formatNumber(value: number) {
   return numberFormatter.format(value);
 }
 
-function formatSignedNumber(value: number) {
+function formatDeltaNumber(value: number) {
   if (value === 0) {
     return "0";
   }
 
-  return `${value > 0 ? "+" : "-"}${formatNumber(Math.abs(value))}`;
+  return formatNumber(Math.abs(value));
 }
 
 function formatPercent(value: number) {
@@ -541,7 +541,7 @@ function formatPercent(value: number) {
     return "0.0%";
   }
 
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
+  return `${Math.abs(value).toFixed(1)}%`;
 }
 
 function formatRank(rank: number | null) {
@@ -1231,7 +1231,7 @@ export function DailyChartSetupPage() {
                   const playCountValue =
                     displayMode === "total"
                       ? formatNumber(row.totalPlayCount)
-                      : formatSignedNumber(row.playCountDelta);
+                      : formatDeltaNumber(row.playCountDelta);
                   const playCountTrendIcon =
                     row.playCountChangeRate > 0
                       ? "\u2191"

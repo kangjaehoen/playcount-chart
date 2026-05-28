@@ -22,9 +22,15 @@ const comparisonColor = "#df108a";
 const thirdPointColor = "#16c79a";
 const lineColor = "#475569";
 const pointColors = [anchorColor, comparisonColor, thirdPointColor] as const;
+const triangleSize = 10;
+const pointSize = 8;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function snapPixel(value: number) {
+  return Math.round(value);
 }
 
 function getRankX(point: ChartRankPoint) {
@@ -42,9 +48,10 @@ function getRankTitle(point: ChartRankPoint) {
 }
 
 function getTrianglePath(x: number, y: number, pointsRight: boolean) {
-  const baseX = pointsRight ? x - 12 : x + 12;
+  const baseX = pointsRight ? x - triangleSize : x + triangleSize;
+  const halfSize = triangleSize / 2;
 
-  return `M ${x} ${y} L ${baseX} ${y - 7} L ${baseX} ${y + 7} Z`;
+  return `M ${x} ${y} L ${baseX} ${y - halfSize} L ${baseX} ${y + halfSize} Z`;
 }
 
 export function DumbbellPreview({ points, chartTypes = [] }: DumbbellPreviewProps) {
@@ -56,7 +63,7 @@ export function DumbbellPreview({ points, chartTypes = [] }: DumbbellPreviewProp
     }));
   const plottedPoints = rankPoints.slice(0, 3).map((point, index) => ({
     ...point,
-    x: getRankX(point),
+    x: snapPixel(getRankX(point)),
     y: centerY,
     pointIndex: index,
     muted: point.rank === null,
@@ -110,11 +117,9 @@ export function DumbbellPreview({ points, chartTypes = [] }: DumbbellPreviewProp
               key={`${point.chartType}-${point.pointIndex}`}
               cx={point.x}
               cy={point.y}
-              r={point.pointIndex === 2 ? "4.5" : "4"}
+              r={pointSize / 2}
               fill={pointColors[point.pointIndex] ?? comparisonColor}
               opacity={point.muted ? 0.38 : 1}
-              stroke="#ffffff"
-              strokeWidth="1.4"
             />
           ))}
           {anchorPlot ? (
