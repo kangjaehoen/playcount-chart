@@ -19,7 +19,9 @@ const plotMaxX = rightBandX;
 const guideLineXs = [0.5, leftBandX, plotStartX, 117, 171, 225, rightBandX, width - 0.5];
 const anchorColor = "#0078e7";
 const comparisonColor = "#df108a";
+const thirdPointColor = "#16c79a";
 const lineColor = "#475569";
+const pointColors = [anchorColor, comparisonColor, thirdPointColor] as const;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -52,25 +54,21 @@ export function DumbbellPreview({ points, chartTypes = [] }: DumbbellPreviewProp
       chartType,
       rank: null,
     }));
-  const anchorPoint = rankPoints[0];
-  const comparisonPoint = rankPoints[1];
-  const plottedPoints =
-    anchorPoint?.rank && comparisonPoint
-      ? [anchorPoint, comparisonPoint].map((point) => ({
-          ...point,
-          x: getRankX(point),
-          y: centerY,
-        }))
-      : [];
-  const [anchorPlot, comparisonPlot] = plottedPoints;
+  const plottedPoints = rankPoints.slice(0, 3).map((point, index) => ({
+    ...point,
+    x: getRankX(point),
+    y: centerY,
+    pointIndex: index,
+    muted: point.rank === null,
+  }));
+  const anchorPlot = plottedPoints[0];
   const lineStartX =
-    anchorPlot && comparisonPlot ? Math.min(anchorPlot.x, comparisonPlot.x) : plotMinX;
+    plottedPoints.length >= 2 ? Math.min(...plottedPoints.map((point) => point.x)) : plotMinX;
   const lineEndX =
-    anchorPlot && comparisonPlot ? Math.max(anchorPlot.x, comparisonPlot.x) : plotMinX;
-  const trianglePointsRight =
-    anchorPlot && comparisonPlot ? anchorPlot.x <= comparisonPlot.x : true;
+    plottedPoints.length >= 2 ? Math.max(...plottedPoints.map((point) => point.x)) : plotMinX;
+  const trianglePointsRight = anchorPlot ? anchorPlot.x <= lineEndX : true;
   const lineTitle =
-    anchorPlot && comparisonPlot ? plottedPoints.map(getRankTitle).join(" / ") : "No comparison";
+    plottedPoints.length >= 2 ? plottedPoints.map(getRankTitle).join(" / ") : "No comparison";
 
   return (
     <Box
@@ -95,7 +93,7 @@ export function DumbbellPreview({ points, chartTypes = [] }: DumbbellPreviewProp
           shapeRendering="crispEdges"
         />
       ))}
-      {anchorPlot && comparisonPlot ? (
+      {plottedPoints.length >= 2 ? (
         <g>
           <title>{lineTitle}</title>
           <line
@@ -107,18 +105,25 @@ export function DumbbellPreview({ points, chartTypes = [] }: DumbbellPreviewProp
             strokeWidth="2"
             strokeLinecap="round"
           />
-          <circle
-            cx={comparisonPlot.x}
-            cy={comparisonPlot.y}
-            r="4"
-            fill={comparisonColor}
-            stroke="#ffffff"
-            strokeWidth="1.4"
-          />
-          <path
-            d={getTrianglePath(anchorPlot.x, anchorPlot.y, trianglePointsRight)}
-            fill={anchorColor}
-          />
+          {plottedPoints.slice(1).map((point) => (
+            <circle
+              key={`${point.chartType}-${point.pointIndex}`}
+              cx={point.x}
+              cy={point.y}
+              r={point.pointIndex === 2 ? "4.5" : "4"}
+              fill={pointColors[point.pointIndex] ?? comparisonColor}
+              opacity={point.muted ? 0.38 : 1}
+              stroke="#ffffff"
+              strokeWidth="1.4"
+            />
+          ))}
+          {anchorPlot ? (
+            <path
+              d={getTrianglePath(anchorPlot.x, anchorPlot.y, trianglePointsRight)}
+              fill={anchorColor}
+              opacity={anchorPlot.muted ? 0.38 : 1}
+            />
+          ) : null}
         </g>
       ) : null}
     </Box>

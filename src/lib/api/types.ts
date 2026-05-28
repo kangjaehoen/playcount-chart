@@ -131,8 +131,6 @@ export type DailyChartTableRow = {
   engagement: number;
   playCountDelta: number;
   playCountChangeRate: number;
-  genieRank: number | null;
-  melonRank: number | null;
 };
 
 export const STATS_PLATFORMS = [

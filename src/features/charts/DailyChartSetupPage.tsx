@@ -21,8 +21,6 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { DumbbellPreview } from "@/components/charts/DumbbellPreview";
@@ -31,7 +29,6 @@ import {
   CHART_TYPE_META,
   type ChartType,
   type DailyChartTableRow,
-  type DisplayMode,
   type RankChange,
 } from "@/lib/api/types";
 import { buildDailyChartRows } from "@/lib/charts/dailyChartRows";
@@ -41,7 +38,6 @@ const dateOptions = ["2026-03-01", "2026-02-28", "2026-02-27", "2026-02-26"];
 const paginationButtonCount = 4;
 const skeletonRows = Array.from({ length: 10 }, (_, index) => index);
 const loadingDelayMs = 240;
-const chartTableWidth = 1080;
 const chartTableRowHeight = 88;
 const paginationHeight = 28;
 const paginationGap = 6;
@@ -51,12 +47,18 @@ const chartTableColumns = {
   rank: 60,
   rankChange: 40,
   songInfo: 288,
-  soundat: 280,
+  mainChart: 280,
   engagement: 116,
   playCount: 116,
-  genie: 90,
-  melon: 90,
+  comparisonRank: 90,
 } as const;
+const chartTableBaseWidth =
+  chartTableColumns.rank +
+  chartTableColumns.rankChange +
+  chartTableColumns.songInfo +
+  chartTableColumns.mainChart +
+  chartTableColumns.engagement +
+  chartTableColumns.playCount;
 const chartHeaderTypography = {
   fontFamily: "Pretendard, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
   fontSize: 12,
@@ -700,7 +702,6 @@ export function DailyChartSetupPage() {
   const refreshSeed = useChartStore((state) => state.refreshSeed);
   const setDate = useChartStore((state) => state.setDate);
   const toggleChart = useChartStore((state) => state.toggleChart);
-  const setDisplayMode = useChartStore((state) => state.setDisplayMode);
   const setPage = useChartStore((state) => state.setPage);
   const setPageSize = useChartStore((state) => state.setPageSize);
   const refreshMockData = useChartStore((state) => state.refreshMockData);
@@ -715,6 +716,10 @@ export function DailyChartSetupPage() {
     () => getSelectedChartSummary(selectedCharts),
     [selectedCharts],
   );
+  const mainChartType = selectedCharts[0] ?? "soundat";
+  const comparisonChartTypes = selectedCharts.slice(1, 3);
+  const activeChartTableWidth =
+    chartTableBaseWidth + comparisonChartTypes.length * chartTableColumns.comparisonRank;
   const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
   const clampedPage = Math.min(page, pageCount - 1);
   const visibleRows = useMemo(
@@ -782,14 +787,8 @@ export function DailyChartSetupPage() {
     setPageSize(Number(event.target.value));
   };
 
-  const handleDisplayModeChange = (_: unknown, mode: DisplayMode | null) => {
-    if (mode) {
-      setDisplayMode(mode);
-    }
-  };
-
   return (
-    <Box sx={{ width: chartTableWidth, mx: "auto", pt: 3.25, pb: 7 }}>
+    <Box sx={{ width: activeChartTableWidth, mx: "auto", pt: 3.25, pb: 7 }}>
       <Box
         sx={{
           borderBottom: "1px solid #edf1f6",
@@ -976,31 +975,6 @@ export function DailyChartSetupPage() {
             </Button>
           </Stack>
 
-          <ToggleButtonGroup
-            exclusive
-            size="small"
-            value={displayMode}
-            onChange={handleDisplayModeChange}
-            sx={{
-              flex: "0 0 auto",
-              "& .MuiToggleButton-root": {
-                height: 32,
-                px: 1.5,
-                borderColor: "#dce4ef",
-                color: "#64748b",
-                fontSize: 11,
-                fontWeight: 500,
-                lineHeight: 1,
-              },
-              "& .Mui-selected": {
-                color: "#020617 !important",
-                bgcolor: "#f8fafc !important",
-              },
-            }}
-          >
-            <ToggleButton value="total">전체 숫자</ToggleButton>
-            <ToggleButton value="delta">증감량 기준</ToggleButton>
-          </ToggleButtonGroup>
         </Stack>
 
         <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", flexWrap: "wrap" }}>
@@ -1032,7 +1006,7 @@ export function DailyChartSetupPage() {
           aria-label="곡 차트 일간 기본 테이블"
           size="small"
           sx={{
-            width: chartTableWidth,
+            width: activeChartTableWidth,
             tableLayout: "fixed",
             "& .MuiTableCell-root": {
               boxSizing: "border-box",
@@ -1075,7 +1049,7 @@ export function DailyChartSetupPage() {
               px: "20px",
             },
             "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(4)": {
-              width: chartTableColumns.soundat,
+              width: chartTableColumns.mainChart,
               px: 0,
             },
             "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(5)": {
@@ -1091,10 +1065,10 @@ export function DailyChartSetupPage() {
                 p: 0,
               },
             "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(7)": {
-              width: chartTableColumns.genie,
+              width: chartTableColumns.comparisonRank,
             },
             "& .MuiTableBody-root .MuiTableCell-root:nth-of-type(8)": {
-              width: chartTableColumns.melon,
+              width: chartTableColumns.comparisonRank,
             },
             "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(1)": {
               p: "10px 20px",
@@ -1104,7 +1078,7 @@ export function DailyChartSetupPage() {
               p: "10px 20px",
             },
             "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(3)": {
-              width: chartTableColumns.soundat,
+              width: chartTableColumns.mainChart,
               p: "10px 12px",
             },
             "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(4)": {
@@ -1120,10 +1094,10 @@ export function DailyChartSetupPage() {
                 p: "10px 12px",
               },
             "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(6)": {
-              width: chartTableColumns.genie,
+              width: chartTableColumns.comparisonRank,
             },
             "& .MuiTableHead-root .MuiTableCell-root:nth-of-type(7)": {
-              width: chartTableColumns.melon,
+              width: chartTableColumns.comparisonRank,
             },
             "& .MuiTableCell-body:nth-of-type(7), & .MuiTableCell-body:nth-of-type(8)": {
               bgcolor: "#f8fafc",
@@ -1149,11 +1123,12 @@ export function DailyChartSetupPage() {
             <col style={{ width: chartTableColumns.rank }} />
             <col style={{ width: chartTableColumns.rankChange }} />
             <col style={{ width: chartTableColumns.songInfo }} />
-            <col style={{ width: chartTableColumns.soundat }} />
+            <col style={{ width: chartTableColumns.mainChart }} />
             <col style={{ width: chartTableColumns.engagement }} />
             <col style={{ width: chartTableColumns.playCount }} />
-            <col style={{ width: chartTableColumns.genie }} />
-            <col style={{ width: chartTableColumns.melon }} />
+            {comparisonChartTypes.map((chartType) => (
+              <col key={chartType} style={{ width: chartTableColumns.comparisonRank }} />
+            ))}
           </colgroup>
           <TableHead>
             <TableRow>
@@ -1163,10 +1138,14 @@ export function DailyChartSetupPage() {
               <TableCell width={chartTableColumns.songInfo}>
                 <ChartHeaderText>곡 정보</ChartHeaderText>
               </TableCell>
-              <TableCell width={chartTableColumns.soundat}>
+              <TableCell width={chartTableColumns.mainChart}>
                 <ChartHeaderFrame gap="8px">
-                  <ChartLogo chartType="soundat" size={18} />
-                  <ChartHeaderText>사운드엣 일간 차트</ChartHeaderText>
+                  <ChartLogo
+                    chartType={mainChartType}
+                    size={18}
+                    src={chartFilterLogoSrc[mainChartType]}
+                  />
+                  <ChartHeaderText>{CHART_TYPE_META[mainChartType].label}</ChartHeaderText>
                 </ChartHeaderFrame>
               </TableCell>
               <TableCell align="center" width={chartTableColumns.engagement}>
@@ -1180,16 +1159,21 @@ export function DailyChartSetupPage() {
                   <ChartHeaderText>재생수</ChartHeaderText>
                 </ChartHeaderFrame>
               </TableCell>
-              <TableCell align="center" width={chartTableColumns.genie}>
-                <ChartHeaderFrame justifyContent="flex-end">
-                  <ChartLogo chartType="melon" size={18} />
-                </ChartHeaderFrame>
-              </TableCell>
-              <TableCell align="center" width={chartTableColumns.melon}>
-                <ChartHeaderFrame justifyContent="flex-end">
-                  <ChartLogo chartType="ytmusic" size={18} src="/logos/youtube2.svg" />
-                </ChartHeaderFrame>
-              </TableCell>
+              {comparisonChartTypes.map((chartType) => (
+                <TableCell
+                  key={chartType}
+                  align="center"
+                  width={chartTableColumns.comparisonRank}
+                >
+                  <ChartHeaderFrame justifyContent="flex-end">
+                    <ChartLogo
+                      chartType={chartType}
+                      size={18}
+                      src={chartFilterLogoSrc[chartType]}
+                    />
+                  </ChartHeaderFrame>
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -1234,19 +1218,16 @@ export function DailyChartSetupPage() {
                         <Skeleton variant="rounded" width={46} height={17} />
                       </Box>
                     </TableCell>
-                    <TableCell align="center">
-                      <Box sx={platformRankCellSx}>
-                        <Skeleton width={42} height={17} />
-                      </Box>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Box sx={platformRankCellSx}>
-                        <Skeleton width={42} height={17} />
-                      </Box>
-                    </TableCell>
+                    {comparisonChartTypes.map((chartType) => (
+                      <TableCell key={chartType} align="center">
+                        <Box sx={platformRankCellSx}>
+                          <Skeleton width={42} height={17} />
+                        </Box>
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))
-              : visibleRows.map((row, rowIndex) => {
+              : visibleRows.map((row) => {
                   const playCountValue =
                     displayMode === "total"
                       ? formatNumber(row.totalPlayCount)
@@ -1257,7 +1238,6 @@ export function DailyChartSetupPage() {
                       : row.playCountChangeRate < 0
                         ? "\u2193"
                         : "\u2013";
-                  const isFocusedRow = rowIndex === 1;
 
                   return (
                     <TableRow
@@ -1270,20 +1250,6 @@ export function DailyChartSetupPage() {
                         "&:hover td:nth-of-type(7), &:hover td:nth-of-type(8)": {
                           bgcolor: "#f3f7fb",
                         },
-                        ...(isFocusedRow
-                          ? {
-                              "& td": {
-                                borderTop: "1px solid #2f80ed",
-                                borderBottom: "1px solid #2f80ed",
-                              },
-                              "& td:first-of-type": {
-                                borderLeft: "1px solid #2f80ed",
-                              },
-                              "& td:last-of-type": {
-                                borderRight: "1px solid #2f80ed",
-                              },
-                            }
-                          : {}),
                       }}
                     >
                       <TableCell align="center">
@@ -1351,26 +1317,21 @@ export function DailyChartSetupPage() {
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell align="center">
-                        <Box sx={platformRankCellSx}>
-                          <Typography sx={platformRankValueSx}>
-                            {formatRank(row.genieRank)}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Box sx={platformRankCellSx}>
-                          <Typography sx={platformRankValueSx}>
-                            {formatRank(row.melonRank)}
-                          </Typography>
-                        </Box>
-                      </TableCell>
+                      {comparisonChartTypes.map((chartType) => (
+                        <TableCell key={chartType} align="center">
+                          <Box sx={platformRankCellSx}>
+                            <Typography sx={platformRankValueSx}>
+                              {formatRank(row.chartRanks[chartType])}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                      ))}
                     </TableRow>
                   );
                 })}
             {!isLoading && visibleRows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} align="center">
+                <TableCell colSpan={6 + comparisonChartTypes.length} align="center">
                   <Typography sx={{ color: "#7a8596", py: 4, fontSize: 12 }}>
                     표시할 차트 데이터가 없습니다.
                   </Typography>
@@ -1387,7 +1348,7 @@ export function DailyChartSetupPage() {
           alignItems: "center",
           justifyContent: "flex-end",
           gap: "24px",
-          width: chartTableWidth,
+          width: activeChartTableWidth,
           mt: "24px",
           height: paginationHeight,
         }}

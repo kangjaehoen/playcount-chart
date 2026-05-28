@@ -1,13 +1,6 @@
 "use client";
 
-import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
-import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
-import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
-import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import ShowChartRoundedIcon from "@mui/icons-material/ShowChartRounded";
 import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -15,9 +8,16 @@ import Typography from "@mui/material/Typography";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { useChartStore } from "@/store/chartStore";
 
 type AppShellProps = {
   children: ReactNode;
+};
+
+type PrimaryNavItem = {
+  label: string;
+  iconSrc: string;
+  active?: boolean;
 };
 
 const sidebarWidth = 282;
@@ -29,6 +29,7 @@ const navigationMuted = "#334155";
 const navigationBorder = "#e2e8f0";
 const navigationSoftBg = "#f8fafc";
 const miniRailUtilityMarginTop = 280;
+const sidebarAssetPath = "/sidebar";
 
 const chartNavItems = [
   { label: "일간", href: "/charts/daily" },
@@ -49,16 +50,41 @@ function PlaycountMark({ size = 18 }: { size?: number }) {
   );
 }
 
-const primaryNavItems = [
-  { label: "홈", icon: <HomeOutlinedIcon sx={{ fontSize: 18 }} /> },
-  { label: "Artist", icon: <PersonOutlineRoundedIcon sx={{ fontSize: 18 }} /> },
-  { label: "Music", icon: <MusicNoteRoundedIcon sx={{ fontSize: 18 }} /> },
-  { label: "Marketing", icon: <CampaignOutlinedIcon sx={{ fontSize: 18 }} /> },
-  { label: "Charts", icon: <ShowChartRoundedIcon sx={{ fontSize: 18 }} />, active: true },
+function SidebarLogo() {
+  return (
+    <Box
+      component="img"
+      src={`${sidebarAssetPath}/sidebar-logo.svg`}
+      alt="PLAYCOUNT"
+      sx={{ width: 140, height: 15, display: "block" }}
+    />
+  );
+}
+
+function SidebarIcon({ src }: { src: string }) {
+  return (
+    <Box
+      component="img"
+      src={src}
+      alt=""
+      aria-hidden
+      sx={{ width: 18, height: 18, display: "block" }}
+    />
+  );
+}
+
+const primaryNavItems: PrimaryNavItem[] = [
+  { label: "홈", iconSrc: `${sidebarAssetPath}/home.svg` },
+  { label: "Artist", iconSrc: `${sidebarAssetPath}/artist.svg` },
+  { label: "Music", iconSrc: `${sidebarAssetPath}/music.svg` },
+  { label: "Marketing", iconSrc: `${sidebarAssetPath}/marketing.svg` },
+  { label: "Charts", iconSrc: `${sidebarAssetPath}/charts.svg`, active: true },
 ];
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
+  const displayMode = useChartStore((state) => state.displayMode);
+  const setDisplayMode = useChartStore((state) => state.setDisplayMode);
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", minWidth: 1280, bgcolor: "#ffffff" }}>
@@ -163,29 +189,18 @@ export function AppShell({ children }: AppShellProps) {
           }}
         >
           <Box sx={{ px: "16px", pt: "28px", pb: 0, overflow: "hidden" }}>
-            <Stack direction="row" spacing="7px" sx={{ alignItems: "center", mb: "34px" }}>
-              <PlaycountMark size={18} />
-              <Typography
-                sx={{
-                  color: navigationInk,
-                  fontSize: 17,
-                  fontWeight: 700,
-                  lineHeight: "18px",
-                  letterSpacing: 0,
-                }}
-              >
-                PLAYCOUNT
-              </Typography>
-            </Stack>
+            <Box sx={{ mb: "34px" }}>
+              <SidebarLogo />
+            </Box>
 
             <Stack spacing="12px">
-              <NavItem label={primaryNavItems[0].label} icon={primaryNavItems[0].icon} />
-              <Box sx={{ height: 1, bgcolor: navigationBorder }} />
+              <NavItem label={primaryNavItems[0].label} iconSrc={primaryNavItems[0].iconSrc} />
+              <Box sx={{ height: "1px", bgcolor: navigationBorder }} />
               {primaryNavItems.slice(1).map((item) => (
                 <NavItem
                   key={item.label}
                   label={item.label}
-                  icon={item.icon}
+                  iconSrc={item.iconSrc}
                   active={item.active}
                 />
               ))}
@@ -193,7 +208,7 @@ export function AppShell({ children }: AppShellProps) {
 
             <Box
               sx={{
-                mt: "8px",
+                mt: "4px",
                 ml: "24px",
                 position: "relative",
                 color: navigationMuted,
@@ -201,34 +216,50 @@ export function AppShell({ children }: AppShellProps) {
                   content: '""',
                   position: "absolute",
                   left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: 1,
+                  top: 4,
+                  bottom: 4,
+                  width: "1px",
                   bgcolor: navigationBorder,
                 },
               }}
             >
               <SubNavHeader label="곡 차트" />
-              <Stack spacing={0}>
-                {chartNavItems.map((item) => {
-                  const selected = pathname === item.href;
+              <Box
+                sx={{
+                  ml: "20px",
+                  position: "relative",
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: "1px",
+                    bgcolor: navigationBorder,
+                  },
+                }}
+              >
+                <Stack spacing={0}>
+                  {chartNavItems.map((item) => {
+                    const selected = pathname === item.href;
 
-                  return (
-                    <SubNavItem
-                      key={item.href}
-                      href={item.href}
-                      label={item.label}
-                      selected={selected}
-                    />
-                  );
-                })}
-              </Stack>
+                    return (
+                      <SubNavItem
+                        key={item.href}
+                        href={item.href}
+                        label={item.label}
+                        selected={selected}
+                      />
+                    );
+                  })}
+                </Stack>
+              </Box>
               <SubNavHeader label="아티스트 차트" collapsed sx={{ mt: "12px" }} />
             </Box>
 
             <NavItem
               label="Ticket"
-              icon={<ConfirmationNumberOutlinedIcon sx={{ fontSize: 18 }} />}
+              iconSrc={`${sidebarAssetPath}/ticket.svg`}
               sx={{ mt: "24px" }}
             />
           </Box>
@@ -236,19 +267,29 @@ export function AppShell({ children }: AppShellProps) {
           <Box
             sx={{
               flex: "0 0 auto",
-              mt: "64px",
+              mt: "auto",
               bgcolor: "#ffffff",
             }}
           >
             <Box sx={{ px: "16px", pt: "16px", pb: "12px" }}>
               <NavItem
                 label="Settings"
-                icon={<SettingsRoundedIcon sx={{ fontSize: 18 }} />}
+                iconSrc={`${sidebarAssetPath}/setting.svg`}
                 sx={{ px: "12px" }}
               />
               <Stack direction="row" spacing={1} sx={{ mt: "16px" }}>
-                <ModeChip tone="blue">증감량 기준</ModeChip>
-                <ModeChip tone="violet">전체 숫자</ModeChip>
+                <ModeChip
+                  label="증감량 기준"
+                  onClick={() => setDisplayMode("delta")}
+                  selected={displayMode === "delta"}
+                  tone="blue"
+                />
+                <ModeChip
+                  label="전체 숫자"
+                  onClick={() => setDisplayMode("total")}
+                  selected={displayMode === "total"}
+                  tone="violet"
+                />
               </Stack>
               <Stack
                 direction="row"
@@ -306,8 +347,7 @@ export function AppShell({ children }: AppShellProps) {
                   height: 32,
                   borderRadius: "50%",
                   bgcolor: "#e2e8f0",
-                  background:
-                    "linear-gradient(135deg, #d9c8a5 0%, #f8fafc 46%, #94a3b8 100%)",
+                  background: "linear-gradient(135deg, #d9c8a5 0%, #f8fafc 46%, #94a3b8 100%)",
                   border: "1px solid #ffffff",
                   boxShadow: "0 0 0 1px #e2e8f0",
                   flex: "0 0 32px",
@@ -393,7 +433,9 @@ function MiniRailButton({
         width: 40,
         height: 40,
         p: 0,
-        border: soft ? "none" : `1px solid ${active || selected ? navigationInk : navigationBorder}`,
+        border: soft
+          ? "none"
+          : `1px solid ${active || selected ? navigationInk : navigationBorder}`,
         borderRadius: "2px",
         bgcolor: selected ? navigationInk : soft ? navigationSoftBg : "#ffffff",
         color: selected ? "#ffffff" : "#0f172a",
@@ -419,12 +461,12 @@ function MiniRailButton({
 
 function NavItem({
   active = false,
-  icon,
+  iconSrc,
   label,
   sx,
 }: {
   active?: boolean;
-  icon: ReactNode;
+  iconSrc: string;
   label: string;
   sx?: Record<string, unknown>;
 }) {
@@ -438,7 +480,7 @@ function NavItem({
         justifyContent: "space-between",
         borderRadius: "2px",
         color: active ? navigationInk : navigationMuted,
-        bgcolor: active ? navigationSoftBg : "transparent",
+        bgcolor: "transparent",
         fontSize: 14,
         fontWeight: active ? 600 : 500,
         lineHeight: "14px",
@@ -446,7 +488,7 @@ function NavItem({
         transition: "background-color 120ms ease, color 120ms ease",
         ...sx,
         "&:hover": {
-          bgcolor: active ? navigationSoftBg : "#f8fafc",
+          bgcolor: navigationSoftBg,
           color: navigationInk,
         },
       }}
@@ -455,7 +497,7 @@ function NavItem({
         <Box
           sx={{ width: 18, height: 18, display: "grid", placeItems: "center", flex: "0 0 18px" }}
         >
-          {icon}
+          <SidebarIcon src={iconSrc} />
         </Box>
         <Box component="span" sx={{ minWidth: 0 }}>
           {label}
@@ -466,33 +508,61 @@ function NavItem({
   );
 }
 
-function ModeChip({ children, tone }: { children: ReactNode; tone: "blue" | "violet" }) {
+function ModeChip({
+  label,
+  onClick,
+  selected,
+  tone,
+}: {
+  label: string;
+  onClick: () => void;
+  selected: boolean;
+  tone: "blue" | "violet";
+}) {
   const palette =
     tone === "blue"
-      ? { bg: "#eff6ff", fg: "#2563eb", border: "#dbeafe" }
-      : { bg: "#f5f3ff", fg: "#6d4aff", border: "#ede9fe" };
+      ? { bg: "#eff6ff", fg: "#2563eb", border: "#dbeafe", selectedBg: "#2563eb" }
+      : { bg: "#f5f3ff", fg: "#6d4aff", border: "#ede9fe", selectedBg: "#6d4aff" };
 
   return (
     <Box
-      component="span"
+      component="button"
+      type="button"
+      aria-pressed={selected}
+      aria-label={label}
+      onClick={onClick}
       sx={{
         height: 24,
         px: "8px",
+        py: 0,
+        m: 0,
         borderRadius: "2px",
-        border: `1px solid ${palette.border}`,
+        border: `1px solid ${selected ? palette.selectedBg : palette.border}`,
+        appearance: "none",
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        bgcolor: palette.bg,
-        color: palette.fg,
+        bgcolor: selected ? palette.selectedBg : palette.bg,
+        color: selected ? "#ffffff" : palette.fg,
+        fontFamily: "inherit",
         fontSize: 11,
         fontWeight: 600,
         lineHeight: "11px",
         letterSpacing: 0,
         whiteSpace: "nowrap",
+        cursor: "pointer",
+        transition: "background-color 120ms ease, border-color 120ms ease, color 120ms ease",
+        "&:hover": {
+          borderColor: palette.selectedBg,
+          bgcolor: selected ? palette.selectedBg : "#ffffff",
+        },
+        "&:focus-visible": {
+          outline: "2px solid #2563eb",
+          outlineOffset: 2,
+        },
       }}
     >
-      {children}
+      {label}
     </Box>
   );
 }
@@ -509,16 +579,16 @@ function SubNavHeader({
   return (
     <Box
       sx={{
-        height: 40,
+        height: 34,
         pl: "20px",
-        pr: "12px",
+        pr: "8px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         color: navigationMuted,
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: 500,
-        lineHeight: "14px",
+        lineHeight: "16px",
         letterSpacing: 0,
         ...sx,
       }}
@@ -527,7 +597,7 @@ function SubNavHeader({
       <KeyboardArrowDownRoundedIcon
         sx={{
           color: "#94a3b8",
-          fontSize: 16,
+          fontSize: 14,
           transform: collapsed ? "none" : "none",
         }}
       />
@@ -542,26 +612,26 @@ function SubNavItem({ href, label, selected }: { href: string; label: string; se
       href={href}
       sx={{
         position: "relative",
-        ml: "24px",
-        width: "calc(100% - 24px)",
-        height: 36,
+        ml: "20px",
+        width: "calc(100% - 28px)",
+        height: 34,
         px: "12px",
-        borderRadius: "2px",
+        borderRadius: 0,
         display: "flex",
         alignItems: "center",
         color: selected ? navigationInk : navigationMuted,
         bgcolor: selected ? navigationBorder : "transparent",
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: selected ? 600 : 500,
-        lineHeight: "14px",
+        lineHeight: "16px",
         letterSpacing: 0,
         "&::before": {
           content: '""',
           position: "absolute",
-          left: "-24px",
+          left: "-20px",
           top: "50%",
           width: "12px",
-          height: 1,
+          height: "1px",
           bgcolor: navigationBorder,
         },
         "&:hover": {

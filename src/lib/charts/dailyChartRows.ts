@@ -109,21 +109,6 @@ function calculateRankChange(
   return { type: "same", value: 0 };
 }
 
-function rankByPlatform(
-  songIds: number[],
-  statsBySongId: Map<number, NormalizedSongStats>,
-  platform: StatsPlatform,
-) {
-  return createRankMap(
-    [...songIds].sort((firstSongId, secondSongId) => {
-      const firstStats = getStats(statsBySongId, firstSongId);
-      const secondStats = getStats(statsBySongId, secondSongId);
-
-      return secondStats[platform] - firstStats[platform];
-    }),
-  );
-}
-
 function toMapById<T>(items: T[], getId: (item: T) => number) {
   return new Map(items.map((item) => [getId(item), item]));
 }
@@ -185,9 +170,6 @@ export async function buildDailyChartRows({
   const chartRankMaps = new Map(
     currentCharts.map((chart) => [chart.chart_type, createRankMap(chart.song_ids)]),
   );
-  const genieRankMap = rankByPlatform(mainSongIds, currentStatsBySongId, "genie_playcnt");
-  const melonRankMap = rankByPlatform(mainSongIds, currentStatsBySongId, "melon_playcnt");
-
   return mainSongIds.map((songId, index) => {
     const rank = index + 1;
     const song = songInfoById.get(songId);
@@ -225,8 +207,6 @@ export async function buildDailyChartRows({
       engagement: currentStats.engagement,
       playCountDelta,
       playCountChangeRate,
-      genieRank: genieRankMap.get(songId) ?? null,
-      melonRank: melonRankMap.get(songId) ?? null,
     };
   });
 }
