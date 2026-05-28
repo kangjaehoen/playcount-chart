@@ -23,12 +23,11 @@ type PrimaryNavItem = {
 const sidebarWidth = 282;
 const miniRailWidth = 72;
 const navigationWidth = sidebarWidth - miniRailWidth;
-const miniRailBottomHeight = 92;
+const sidebarProfileHeight = 66;
 const navigationInk = "#020617";
 const navigationMuted = "#334155";
 const navigationBorder = "#e2e8f0";
 const navigationSoftBg = "#f8fafc";
-const miniRailUtilityMarginTop = 280;
 const sidebarAssetPath = "/sidebar";
 
 const chartNavItems = [
@@ -161,14 +160,12 @@ export function AppShell({ children }: AppShellProps) {
           <Box
             sx={{
               width: "100%",
-              height: miniRailBottomHeight,
-              mt: `${miniRailUtilityMarginTop}px`,
+              height: sidebarProfileHeight,
+              mt: "auto",
               display: "flex",
               justifyContent: "center",
-              alignItems: "flex-start",
-              pt: 1.5,
+              alignItems: "center",
               px: 2,
-              pb: 5,
               borderTop: `1px solid ${navigationBorder}`,
             }}
           >
@@ -330,7 +327,7 @@ export function AppShell({ children }: AppShellProps) {
             <Stack
               direction="row"
               sx={{
-                height: 66,
+                height: sidebarProfileHeight,
                 px: "16px",
                 py: "12px",
                 alignItems: "center",
